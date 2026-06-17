@@ -1,5 +1,6 @@
 """WTForms used by auth and content pages."""
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import (StringField, PasswordField, TextAreaField, SubmitField,
                      SelectField, IntegerField)
 from wtforms.validators import (DataRequired, Email, EqualTo, Length, Optional,
@@ -79,7 +80,20 @@ class RoomForm(FlaskForm):
 
 
 class PdfSummaryForm(FlaskForm):
+    """Paste text directly."""
     title = StringField("Title", validators=[DataRequired(), Length(max=200)])
     content = TextAreaField("Paste the document text here",
                             validators=[DataRequired()])
     submit = SubmitField("✨ Summarize")
+
+
+class PdfUploadForm(FlaskForm):
+    """Upload a real PDF file."""
+    title = StringField("Title (optional)",
+                        validators=[Optional(), Length(max=200)])
+    pdf = FileField("PDF file",
+                    validators=[
+                        FileRequired(message="Please choose a PDF."),
+                        FileAllowed(["pdf"], message="PDF files only.")
+                    ])
+    submit = SubmitField("✨ Upload & Summarize")

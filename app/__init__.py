@@ -18,6 +18,7 @@ def create_app():
     from .config import Config
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max upload
 
     db.init_app(app)
     login_manager.init_app(app)

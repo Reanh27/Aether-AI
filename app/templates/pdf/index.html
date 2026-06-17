@@ -1,25 +1,141 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-head">
-  <h1>PDF / Document Summary</h1>
-  <p class="muted">Paste the text from any document — Aether will summarise it for you.</p>
+  <h1>📄 PDF Summary</h1>
+  <p class="muted">Upload a PDF — Aether extracts the text and writes a neat point-wise summary.</p>
 </div>
 
 <div class="card">
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data" id="pdf-form">
     {{ form.hidden_tag() }}
-    <label>{{ form.title.label }} {{ form.title(class_="input", placeholder="e.g. Chapter 4 - Cell Biology") }}</label>
-    <label>{{ form.content.label }} {{ form.content(class_="textarea", rows=12,
-                placeholder="Paste your document text here...") }}</label>
-    {{ form.submit(class_="btn") }}
+
+    <label>{{ form.title.label }}
+      {{ form.title(class_="input", placeholder="e.g. Chapter 4 — Cell Biology (auto-filled from filename if blank)") }}</label>
+
+    <label>{{ form.pdf.label }}</label>
+    <div class="upload-zone" id="drop-zone">
+      {{ form.pdf(id="file-input", style="display:none;", accept=".pdf") }}
+      <div class="upload-empty" id="upload-empty">
+        <div class="upload-icon">📄</div>
+        <p><strong>Click to choose a PDF</strong> or drag & drop here</p>
+        <p class="muted small">Text-based PDFs only · max 50,000 characters extracted</p>
+      </div>
+      <div class="upload-filled" id="upload-filled" hidden>
+        <div class="upload-icon">✅</div>
+        <p><strong id="file-name"></strong></p>
+        <p class="muted small" id="file-size"></p>
+        <button type="button" class="btn-outline small" id="clear-file">Choose different file</button>
+      </div>
+    </div>
+    {% for e in form.pdf.errors %}<small class="err">{{ e }}</small>{% endfor %}
+
+    {{ form.submit(class_="btn btn-lg btn-full mt-12", id="submit-btn") }}
   </form>
+
+  <p class="muted small center mt-12">
+    Don't have a PDF? <a href="{{ url_for('pdf.paste') }}">Paste text instead →</a>
+  </p>
 </div>
 
 {% if summary %}
 <div class="card mt-24">
-  <h2>✨ Summary</h2>
-<div class="ai-summary">{{ summary|md }}</div>
-  <p class="muted small">Saved automatically to <a href="{{ url_for('notes.index') }}">Notes</a>.</p>
+  <div class="row-between">
+    <h2>✨ Summary <span class="muted small">— {{ saved_title }}</span></h2>
+    <div class="row-gap">
+      <button class="btn-outline small" id="copy-btn">📋 Copy</button>
+      <a class="btn-outline small" download="{{ saved_title }}.md"
+         id="download-link">⬇ Download .md</a>
+    </div>
+  </div>
+  <div class="ai-summary" id="summary-body">{{ summary|md }}</div>
+  <p class="muted small mt-12">
+    💾 Saved to <a href="{{ url_for('notes.index') }}">Notes</a>.
+  </p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ---------- File picker + drag/drop ----------
+  const dropZone = document.getElementById("drop-zone");
+  const fileInput = document.getElementById("file-input");
+  const emptyState = document.getElementById("upload-empty");
+  const filledState = document.getElementById("upload-filled");
+  const fileName = document.getElementById("file-name");
+  const fileSize = document.getElementById("file-size");
+  const clearBtn = document.getElementById("clear-file");
+
+  function showFile(file) {
+    fileName.textContent = file.name;
+    fileSize.textContent = (file.size / 1024).toFixed(1) + " KB";
+    emptyState.hidden = true;
+    filledState.hidden = false;
+  }
+
+  dropZone.addEventListener("click", (e) => {
+    if (e.target.id !== "clear-file") fileInput.click();
+  });
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) showFile(fileInput.files[0]);
+  });
+
+  ["dragenter", "dragover"].forEach(evt =>
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault(); dropZone.classList.add("drag-over");
+    }));
+  ["dragleave", "drop"].forEach(evt =>
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault(); dropZone.classList.remove("drag-over");
+    }));
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === "application/pdf") {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      showFile(file);
+    } else {
+      alert("Please drop a PDF file.");
+    }
+  });
+  clearBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    fileInput.value = "";
+    emptyState.hidden = false;
+    filledState.hidden = true;
+  });
+
+  // ---------- Loading state ----------
+  const form = document.getElementById("pdf-form");
+  const submitBtn = document.getElementById("submit-btn");
+  form.addEventListener("submit", () => {
+    if (!fileInput.files[0]) return;
+    submitBtn.disabled = true;
+    submitBtn.value = "✨ Extracting & summarizing…";
+  });
+
+  // ---------- Copy / Download summary ----------
+  {% if summary %}
+  const summaryRaw = {{ summary|tojson }};
+  const copyBtn = document.getElementById("copy-btn");
+  const downloadLink = document.getElementById("download-link");
+
+  copyBtn?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(summaryRaw);
+      copyBtn.textContent = "✓ Copied!";
+      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
+    } catch (err) {
+      alert("Copy failed: " + err.message);
+    }
+  });
+
+  if (downloadLink) {
+    const blob = new Blob([summaryRaw], { type: "text/markdown" });
+    downloadLink.href = URL.createObjectURL(blob);
+  }
+  {% endif %}
+</script>
 {% endblock %}

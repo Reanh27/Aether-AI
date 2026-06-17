@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>📝 Paste text to summarize</h1>
+  <p class="muted">Paste any document text — Aether returns a neat point-wise summary.</p>
+</div>
+
+<div class="card">
+  <form method="POST" id="pdf-form">
+    {{ form.hidden_tag() }}
+    <label>{{ form.title.label }} {{ form.title(class_="input", placeholder="e.g. Chapter 4 — Cell Biology") }}</label>
+    <label>{{ form.content.label }} {{ form.content(class_="textarea", rows=12,
+                placeholder="Paste your document text here...") }}</label>
+    {{ form.submit(class_="btn btn-lg", id="submit-btn") }}
+  </form>
+  <p class="muted small center mt-12">
+    Got a PDF file? <a href="{{ url_for('pdf.index') }}">Upload it directly →</a>
+  </p>
+</div>
+
+{% if summary %}
+<div class="card mt-24">
+  <div class="row-between">
+    <h2>✨ Summary <span class="muted small">— {{ saved_title }}</span></h2>
+    <div class="row-gap">
+      <button class="btn-outline small" id="copy-btn">📋 Copy</button>
+      <a class="btn-outline small" download="{{ saved_title }}.md"
+         id="download-link">⬇ Download .md</a>
+    </div>
+  </div>
+  <div class="ai-summary">{{ summary|md }}</div>
+  <p class="muted small mt-12">
+    💾 Saved to <a href="{{ url_for('notes.index') }}">Notes</a>.
+  </p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("pdf-form");
+  const submitBtn = document.getElementById("submit-btn");
+  form?.addEventListener("submit", () => {
+    submitBtn.disabled = true;
+    submitBtn.value = "✨ Summarizing…";
+  });
+
+  {% if summary %}
+  const summaryRaw = {{ summary|tojson }};
+  const copyBtn = document.getElementById("copy-btn");
+  const downloadLink = document.getElementById("download-link");
+
+  copyBtn?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(summaryRaw);
+      copyBtn.textContent = "✓ Copied!";
+      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
+    } catch (err) { alert("Copy failed: " + err.message); }
+  });
+
+  if (downloadLink) {
+    const blob = new Blob([summaryRaw], { type: "text/markdown" });
+    downloadLink.href = URL.createObjectURL(blob);
+  }
+  {% endif %}
+</script>
+{% endblock %}
