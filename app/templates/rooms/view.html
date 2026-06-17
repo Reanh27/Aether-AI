@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>{{ room.name }}</h1>
+    <p class="muted">{{ room.subject }}</p>
+  </div>
+  <span class="pill {{ 'on' if room.active else 'off' }}">
+    {{ 'Active' if room.active else 'Paused' }}
+  </span>
+</div>
+<div class="card">
+  <p>{{ room.description or 'No description added.' }}</p>
+</div>
+<div class="grid-3 mt-24">
+  <a class="card link" href="{{ url_for('flashcards.new') }}">
+    <h3>🃏 Add Flashcards</h3>
+    <p class="muted">Build a deck for this subject.</p>
+  </a>
+  <a class="card link" href="{{ url_for('quizzes.new') }}">
+    <h3>❓ Take a Quiz</h3>
+    <p class="muted">Test what you know.</p>
+  </a>
+  <a class="card link" href="{{ url_for('chat.index') }}">
+    <h3>💬 Ask AI Tutor</h3>
+    <p class="muted">Get explanations on demand.</p>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>New Study Room</h1></div>
+<div class="card">
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <label>{{ form.name.label }} {{ form.name(class_="input") }}</label>
+    <label>{{ form.subject.label }} {{ form.subject(class_="input") }}</label>
+    <label>{{ form.description.label }} {{ form.description(class_="textarea", rows=4) }}</label>
+    {{ form.submit(class_="btn") }}
+  </form>
+</div>
+{% endblock %}

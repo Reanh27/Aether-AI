@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <h1>{{ note.title }}</h1>
+  <div class="row-gap">
+    <a class="btn-outline" href="{{ url_for('notes.edit', note_id=note.id) }}">Edit</a>
+    <form method="POST" action="{{ url_for('notes.delete', note_id=note.id) }}"
+          onsubmit="return confirm('Delete this note?')">
+      <button class="btn-outline danger">Delete</button>
+    </form>
+  </div>
+</div>
+<div class="card"><article class="note-body">{{ note.content }}</article></div>
+
+<div class="card mt-24">
+  <h3>AI Summary</h3>
+  {% if note.summary %}
+  <div class="ai-summary">{{ note.summary|md }}</div>
+{% else %}
+    <p class="muted">No summary yet.</p>
+  {% endif %}
+  <form method="POST" action="{{ url_for('notes.summarize_note', note_id=note.id) }}">
+    <button class="btn">✨ Generate summary</button>
+  </form>
+</div>
+{% endblock %}

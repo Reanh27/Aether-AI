@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+{% set pct = (quiz.score / total * 100) if total else 0 %}
+{% set grade = 'A+' if pct >= 90 else 'A' if pct >= 80 else 'B' if pct >= 70 else 'C' if pct >= 60 else 'D' if pct >= 50 else 'F' %}
+{% set tone = 'good' if pct >= 70 else 'ok' if pct >= 50 else 'bad' %}
+
+<div class="card result-summary tone-{{ tone }}">
+  <div>
+    <p class="muted small">Results — <span class="pill diff-{{ quiz.difficulty or 'medium' }}">{{ quiz.difficulty or 'medium' }}</span></p>
+    <h1>{{ quiz.topic }}</h1>
+    <p class="lead">
+      You scored <strong>{{ quiz.score }}/{{ total }}</strong> ({{ pct|round|int }}%)
+    </p>
+  </div>
+  <div class="grade-circle grade-{{ tone }}">
+    <span class="grade">{{ grade }}</span>
+    <span class="muted small">{{ pct|round|int }}%</span>
+  </div>
+</div>
+
+<div class="row-gap mt-24">
+  <form method="POST" action="{{ url_for('quizzes.retake', quiz_id=quiz.id) }}">
+    <button class="btn">↻ Retake (same questions)</button>
+  </form>
+  <form method="POST" action="{{ url_for('quizzes.regenerate', quiz_id=quiz.id) }}">
+    <input type="hidden" name="count" value="{{ total }}">
+    <button class="btn-outline">✨ New questions, same topic</button>
+  </form>
+  <a class="btn-outline" href="{{ url_for('quizzes.new') }}">+ New quiz</a>
+</div>
+
+<h2 class="mt-24">Review</h2>
+{% for r in results %}
+  <div class="card question {{ 'correct' if r.correct else 'wrong' }}">
+    <div class="q-head">
+      <span class="q-num">{{ loop.index }}</span>
+      <h3>{{ r.q.question }}</h3>
+      <span class="result-tag {{ 'good' if r.correct else 'bad' }}">
+        {{ '✓ Correct' if r.correct else '✗ Incorrect' }}
+      </span>
+    </div>
+    <ul class="opts-grid review">
+      {% for opt in r.opts %}
+        {% set is_correct = loop.index0 == r.q.correct_index %}
+        {% set is_chosen = loop.index0 == r.chosen %}
+        <li class="opt
+                   {% if is_correct %}correct{% endif %}
+                   {% if is_chosen and not is_correct %}wrong{% endif %}">
+          <span class="opt-letter">{{ 'ABCD'[loop.index0] }}</span>
+          <span class="opt-text">{{ opt }}</span>
+          {% if is_correct %}<span class="mark">✓</span>
+          {% elif is_chosen %}<span class="mark">✗</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    {% if r.q.explanation %}
+      <div class="explanation">
+        <strong>💡 Explanation:</strong> {{ r.q.explanation }}
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="chat-layout">
+  <aside class="chat-side">
+    <form method="POST" action="{{ url_for('chat.new_session') }}">
+      <button class="btn btn-full"><span class="plus">+</span> New Chat</button>
+    </form>
+    <ul class="chat-list">
+      {% for s in sessions %}
+        <li class="{% if current and s.id == current.id %}active{% endif %}">
+          <a href="{{ url_for('chat.index', s=s.id) }}">
+            <span class="ico">💬</span> {{ s.title }}
+          </a>
+                <a href="{{ url_for('wikipedia.index') }}"
+         class="{% if request.blueprint == 'wikipedia' %}active{% endif %}">
+        <span class="ico">📖</span> Wikipedia
+      </a>
+          <form method="POST" action="{{ url_for('chat.delete', session_id=s.id) }}"
+                onsubmit="return confirm('Delete this chat?')" class="del-form">
+            <button title="Delete">✕</button>
+          </form>
+        </li>
+      {% endfor %}
+      {% if not sessions %}
+        <li class="muted small empty">No chats yet. Start a new one.</li>
+      {% endif %}
+    </ul>
+  </aside>
+
+  <section class="chat-main">
+    <div id="chat-window" class="chat-window"
+         data-session-id="{{ current.id if current else '' }}">
+      {% if current %}
+  {% for m in current.messages %}
+    <div class="msg msg-{{ m.role }}">
+      {% if m.role == 'assistant' %}{{ m.content|md }}{% else %}{{ m.content }}{% endif %}
+    </div>
+  {% endfor %}
+        {% if not current.messages %}
+          <div class="empty-chat">
+            <h2>How can I help you study today?</h2>
+            <p class="muted">Ask anything — explanations, examples, summaries, practice questions.</p>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="empty-chat">
+          <h2>Start your first chat</h2>
+          <p class="muted">Click <strong>+ New Chat</strong> on the left to begin.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if current %}
+      <form id="chat-form" class="chat-form">
+        <button type="button" class="mic">🎤</button>
+        <input id="chat-input" class="input" placeholder="Ask anything..." autocomplete="off" required>
+        <button class="send" title="Send">➤</button>
+      </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>{{ deck.title }}</h1>
+    <p class="muted">Click the card to reveal the answer. Use ← / → to navigate.</p>
+  </div>
+  <div class="row-gap">
+    <a class="btn-outline" href="{{ url_for('flashcards.view', deck_id=deck.id) }}">View all</a>
+    <a class="btn-outline" href="{{ url_for('flashcards.index') }}">← Back</a>
+  </div>
+</div>
+
+{% if deck.cards %}
+<div id="flashcard-area" data-total="{{ deck.cards|length }}">
+  {% for c in deck.cards %}
+    <div class="flashcard" data-idx="{{ loop.index0 }}" {% if not loop.first %}hidden{% endif %}>
+      <div class="face front">
+        <span class="card-label">Question {{ loop.index }}</span>
+        <p>{{ c.question }}</p>
+        <span class="card-hint">Click to reveal answer</span>
+      </div>
+      <div class="face back" hidden>
+        <span class="card-label">Answer</span>
+        <p>{{ c.answer }}</p>
+        <span class="card-hint">Click to flip back</span>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="flash-controls">
+  <button class="btn-outline" id="prev-btn">← Prev</button>
+  <span id="counter" class="counter">1 / {{ deck.cards|length }}</span>
+  <button class="btn-outline" id="next-btn">Next →</button>
+</div>
+
+<div class="progress-bar"><div id="progress-fill"></div></div>
+{% else %}
+<div class="card empty">
+  <p class="muted">This deck has no cards.</p>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/flashcards.js') }}"></script>
+{% endblock %}

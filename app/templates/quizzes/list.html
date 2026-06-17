@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>Quizzes</h1>
+    <p class="muted">AI-generated multiple choice quizzes by topic.</p>
+  </div>
+  <a class="btn" href="{{ url_for('quizzes.new') }}">+ New quiz</a>
+</div>
+
+{% if quizzes %}
+<div class="grid-3">
+  {% for q in quizzes %}
+    <div class="card deck-card">
+      <div class="row-between">
+        <h3>{{ q.topic }}</h3>
+        <span class="pill diff-{{ q.difficulty or 'medium' }}">{{ q.difficulty or 'medium' }}</span>
+      </div>
+      <p class="muted small">
+        {{ q.questions|length }} questions · {{ q.created_at.strftime('%b %d, %Y') }}
+      </p>
+      {% if q.score is not none %}
+  {% set total_qs = q.questions|length %}
+  {% set pct = (q.score / total_qs * 100) if total_qs else 0 %}
+  <div class="score-bar">
+    <div class="score-fill" style="width: {{ pct|round|int }}%"></div>
+  </div>
+  <p class="muted small">
+    Last score: <strong>{{ q.score }}/{{ total_qs }}</strong> ({{ pct|round|int }}%)
+  </p>
+{% else %}
+  <p class="muted small">Not taken yet</p>
+{% endif %}
+      <div class="row-gap">
+        <a class="btn" href="{{ url_for('quizzes.take', quiz_id=q.id) }}">
+          {% if q.score is not none %}▶ Retake{% else %}▶ Start{% endif %}
+        </a>
+        <form method="POST" action="{{ url_for('quizzes.delete', quiz_id=q.id) }}"
+              onsubmit="return confirm('Delete this quiz?')">
+          <button class="btn-outline danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="card empty">
+    <h2 class="muted">No quizzes yet</h2>
+    <p class="muted">Generate your first AI quiz on any topic in seconds.</p>
+    <a class="btn btn-lg" href="{{ url_for('quizzes.new') }}">+ Create your first quiz</a>
+  </div>
+{% endif %}
+{% endblock %}

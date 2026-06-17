@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Generate a quiz</h1>
+  <p class="muted">Type any subject + how many questions + difficulty — Aether builds it from Wikipedia + AI.</p>
+</div>
+
+<div class="card">
+  <form method="POST" class="row-form">
+    {{ form.hidden_tag() }}
+    <div class="grow">
+      <label>{{ form.topic.label }}
+        {{ form.topic(class_="input",
+            placeholder="e.g. Photosynthesis, World War II, Python basics") }}</label>
+      {% for e in form.topic.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div style="width: 150px;">
+      <label>{{ form.count.label }}
+        {{ form.count(class_="input", type="number", min=3, max=15) }}</label>
+    </div>
+    <div style="width: 150px;">
+      <label>{{ form.difficulty.label }} {{ form.difficulty(class_="input") }}</label>
+    </div>
+    {{ form.submit(class_="btn") }}
+  </form>
+  <p class="muted small mt-12">
+    💡 Tip: be specific. <em>"Newton's third law"</em> works better than <em>"physics"</em>.
+  </p>
+</div>
+
+<div class="card mt-24 quick-suggest">
+  <h3>Quick suggestions</h3>
+  <p class="muted small">Click one to auto-fill the topic.</p>
+  <div class="suggest-grid">
+    {% for s in ['Photosynthesis', 'World War II', 'Python basics',
+                 'Newton\'s laws of motion', 'Cell biology', 'JavaScript fundamentals',
+                 'Solar system', 'French Revolution', 'Machine learning'] %}
+      <button type="button" class="chip" data-topic="{{ s }}">{{ s }}</button>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll(".chip[data-topic]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const inp = document.querySelector('input[name="topic"]');
+      if (inp) { inp.value = btn.dataset.topic; inp.focus(); }
+    });
+  });
+  const form = document.querySelector("form");
+  if (form) {
+    form.addEventListener("submit", () => {
+      const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        if (btn.tagName === "BUTTON") btn.textContent = "✨ Generating…";
+        else btn.value = "✨ Generating…";
+      }
+    });
+  }
+</script>
+{% endblock %}

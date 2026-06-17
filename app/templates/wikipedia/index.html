@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>📖 Wikipedia Search</h1>
+  <p class="muted">Look up any topic — Aether pulls a clean summary from Wikipedia. Unlimited, free, no API limits.</p>
+</div>
+
+<div class="card">
+  <form method="GET" action="{{ url_for('wikipedia.index') }}" class="row-form">
+    <div class="grow">
+      <input type="text" name="q" class="input"
+             placeholder="Search anything: Albert Einstein, photosynthesis, World War II, Python (programming language)..."
+             value="{{ query }}" autofocus required>
+    </div>
+    <button class="btn">🔍 Search</button>
+  </form>
+
+  {% if not query %}
+    <div class="suggest-grid mt-12">
+      {% for s in ['Albert Einstein', 'Photosynthesis', 'World War II',
+                   'Quantum mechanics', 'Mahatma Gandhi', 'DNA',
+                   'Python (programming language)', 'Solar System', 'Renaissance'] %}
+        <a class="chip" href="{{ url_for('wikipedia.index', q=s) }}">{{ s }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+{% if featured %}
+<div class="card mt-24 wiki-featured">
+  <div class="wiki-featured-body">
+    <div class="wiki-text">
+      <p class="muted small">Top result</p>
+      <h2>{{ featured.title }}</h2>
+      {% if featured.description %}
+        <p class="muted">{{ featured.description }}</p>
+      {% endif %}
+      <p class="wiki-extract">{{ featured.extract }}</p>
+      <div class="row-gap">
+        <a class="btn" href="{{ featured.url }}" target="_blank" rel="noopener">
+          📖 Read full article on Wikipedia ↗
+        </a>
+        <a class="btn-outline"
+           href="{{ url_for('flashcards.new') }}?topic={{ featured.title|urlencode }}">
+          🃏 Make flashcards
+        </a>
+        <a class="btn-outline"
+           href="{{ url_for('quizzes.new') }}?topic={{ featured.title|urlencode }}">
+          ❓ Make a quiz
+        </a>
+      </div>
+    </div>
+    {% if featured.thumbnail %}
+      <div class="wiki-thumb">
+        <img src="{{ featured.thumbnail }}" alt="{{ featured.title }}" loading="lazy">
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if results %}
+<h2 class="mt-24">Related articles</h2>
+<div class="wiki-results">
+  {% for r in results %}
+    {% if r.title != 'Wikipedia error' %}
+      <a class="card wiki-result"
+         href="{{ url_for('wikipedia.article', title=r.title) }}">
+        <h3>{{ r.title }}</h3>
+        <p class="muted small">{{ r.snippet|safe }}…</p>
+      </a>
+    {% endif %}
+  {% endfor %}
+</div>
+{% elif query and not featured %}
+<div class="card empty mt-24">
+  <p class="muted">No results found for <strong>{{ query }}</strong>. Try a different spelling.</p>
+</div>
+{% endif %}
+{% endblock %}

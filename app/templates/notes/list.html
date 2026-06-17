@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>Notes</h1>
+    <p class="muted">Your saved notes and AI summaries.</p>
+  </div>
+  <a class="btn" href="{{ url_for('notes.new') }}">+ New note</a>
+</div>
+
+{% if notes %}
+<div class="card">
+  <ul class="row-list">
+    {% for n in notes %}
+      <li>
+        <a href="{{ url_for('notes.view', note_id=n.id) }}"><strong>{{ n.title }}</strong></a>
+        <span class="muted small">· updated {{ n.updated_at.strftime('%b %d, %Y') }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+  <div class="card empty">
+    <p class="muted">No notes yet.</p>
+    <a class="btn" href="{{ url_for('notes.new') }}">Create your first note</a>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Create a deck with AI</h1>
+  <p class="muted">Type any subject and how many cards you want — Aether will use Wikipedia + AI to build the deck.</p>
+</div>
+
+<div class="card">
+  <form method="POST" class="row-form">
+    {{ form.hidden_tag() }}
+    <div class="grow">
+      <label>{{ form.topic.label }}
+        {{ form.topic(class_="input",
+            placeholder="e.g. Photosynthesis, World War II, React hooks, Linear Algebra") }}</label>
+      {% for e in form.topic.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div style="width: 180px;">
+      <label>{{ form.count.label }}
+        {{ form.count(class_="input", type="number", min=3, max=20) }}</label>
+      {% for e in form.count.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    {{ form.submit(class_="btn") }}
+  </form>
+  <p class="muted small mt-12">
+    💡 Tip: be specific. <em>"Newton's laws of motion"</em> works better than <em>"physics"</em>.
+  </p>
+</div>
+
+<div class="card mt-24 quick-suggest">
+  <h3>Quick suggestions</h3>
+  <p class="muted small">Click one to auto-fill the topic.</p>
+  <div class="suggest-grid">
+    {% for s in ['Photosynthesis', 'World War II', 'Python data types',
+                 'Newton\'s laws of motion', 'Cell biology', 'JavaScript closures',
+                 'Linear algebra basics', 'French Revolution', 'Solar system'] %}
+      <button type="button" class="chip" data-topic="{{ s }}">{{ s }}</button>
+    {% endfor %}
+  </div>
+</div>
+
+<p class="muted small mt-24 center">
+  Need to use your own text instead?
+  <a href="{{ url_for('flashcards.new_from_text') }}">Generate from pasted text →</a>
+</p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll(".chip[data-topic]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const inp = document.querySelector('input[name="topic"]');
+      if (inp) { inp.value = btn.dataset.topic; inp.focus(); }
+    });
+  });
+  const form = document.querySelector("form");
+  if (form) {
+    form.addEventListener("submit", () => {
+      const btn = form.querySelector('button, input[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        if (btn.tagName === "BUTTON") btn.textContent = "✨ Generating…";
+        else btn.value = "✨ Generating…";
+      }
+    });
+  }
+</script>
+{% endblock %}

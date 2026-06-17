@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>PDF / Document Summary</h1>
+  <p class="muted">Paste the text from any document — Aether will summarise it for you.</p>
+</div>
+
+<div class="card">
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <label>{{ form.title.label }} {{ form.title(class_="input", placeholder="e.g. Chapter 4 - Cell Biology") }}</label>
+    <label>{{ form.content.label }} {{ form.content(class_="textarea", rows=12,
+                placeholder="Paste your document text here...") }}</label>
+    {{ form.submit(class_="btn") }}
+  </form>
+</div>
+
+{% if summary %}
+<div class="card mt-24">
+  <h2>✨ Summary</h2>
+<div class="ai-summary">{{ summary|md }}</div>
+  <p class="muted small">Saved automatically to <a href="{{ url_for('notes.index') }}">Notes</a>.</p>
+</div>
+{% endif %}
+{% endblock %}

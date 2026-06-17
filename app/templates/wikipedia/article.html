@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <a href="{{ url_for('wikipedia.index') }}" class="muted small">← Back to search</a>
+</div>
+
+{% if data %}
+<div class="card wiki-featured">
+  <div class="wiki-featured-body">
+    <div class="wiki-text">
+      <h1>{{ data.title }}</h1>
+      {% if data.description %}
+        <p class="muted">{{ data.description }}</p>
+      {% endif %}
+      <p class="wiki-extract">{{ data.extract }}</p>
+      <div class="row-gap">
+        <a class="btn" href="{{ data.url }}" target="_blank" rel="noopener">
+          📖 Read full article on Wikipedia ↗
+        </a>
+        <a class="btn-outline"
+           href="{{ url_for('flashcards.new') }}?topic={{ data.title|urlencode }}">
+          🃏 Make flashcards
+        </a>
+        <a class="btn-outline"
+           href="{{ url_for('quizzes.new') }}?topic={{ data.title|urlencode }}">
+          ❓ Make a quiz
+        </a>
+        <a class="btn-outline"
+           href="{{ url_for('planner.index') }}?goal={{ data.title|urlencode }}">
+          ✧ Plan to study this
+        </a>
+      </div>
+    </div>
+    {% if data.thumbnail %}
+      <div class="wiki-thumb">
+        <img src="{{ data.thumbnail }}" alt="{{ data.title }}" loading="lazy">
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if related %}
+<h2 class="mt-24">Related</h2>
+<div class="wiki-results">
+  {% for r in related %}
+    {% if r.title != 'Wikipedia error' and r.title|lower != data.title|lower %}
+      <a class="card wiki-result"
+         href="{{ url_for('wikipedia.article', title=r.title) }}">
+        <h3>{{ r.title }}</h3>
+        <p class="muted small">{{ r.snippet|safe }}…</p>
+      </a>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card empty">
+  <h2 class="muted">Article not found</h2>
+  <p class="muted">Couldn't load "{{ title }}".</p>
+  <a class="btn" href="{{ url_for('wikipedia.index') }}">← Back to search</a>
+</div>
+{% endif %}
+{% endblock %}

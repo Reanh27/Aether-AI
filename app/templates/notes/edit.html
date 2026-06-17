@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><h1>{{ 'New note' if mode == 'new' else 'Edit note' }}</h1></div>
+<div class="card">
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <label>{{ form.title.label }} {{ form.title(class_="input") }}</label>
+    <label>{{ form.content.label }} {{ form.content(class_="textarea", rows=12) }}</label>
+    {{ form.submit(class_="btn") }}
+  </form>
+</div>
+{% endblock %}

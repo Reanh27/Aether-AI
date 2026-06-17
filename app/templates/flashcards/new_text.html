@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Create deck from your text</h1>
+  <p class="muted">Paste any study material — Aether will turn it into flashcards.</p>
+</div>
+<div class="card">
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <label>{{ form.title.label }} {{ form.title(class_="input") }}</label>
+    <label>{{ form.source_text.label }} {{ form.source_text(class_="textarea", rows=10) }}</label>
+    <label>{{ form.count.label }} {{ form.count(class_="input", type="number", min=3, max=20, style="max-width:180px") }}</label>
+    {{ form.submit(class_="btn") }}
+  </form>
+</div>
+<p class="muted small mt-24 center">
+  Or <a href="{{ url_for('flashcards.new') }}">generate by topic name →</a>
+</p>
+{% endblock %}

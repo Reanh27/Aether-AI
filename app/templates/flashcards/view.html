@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>{{ deck.title }}</h1>
+    <p class="muted">{{ deck.cards|length }} cards · {{ deck.created_at.strftime('%b %d, %Y') }}</p>
+  </div>
+  <div class="row-gap">
+    <a class="btn" href="{{ url_for('flashcards.study', deck_id=deck.id) }}">▶ Study mode</a>
+    <form method="POST" action="{{ url_for('flashcards.regenerate', deck_id=deck.id) }}"
+          onsubmit="return confirm('Replace all cards with a fresh AI set?')">
+      <input type="hidden" name="count" value="{{ deck.cards|length or 8 }}">
+      <button class="btn-outline">↻ Regenerate</button>
+    </form>
+    <form method="POST" action="{{ url_for('flashcards.delete', deck_id=deck.id) }}"
+          onsubmit="return confirm('Delete deck?')">
+      <button class="btn-outline danger">Delete</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  {% if deck.cards %}
+    <ol class="qa-list">
+      {% for c in deck.cards %}
+        <li>
+          <div class="qa-q">{{ c.question }}</div>
+          <div class="qa-a">{{ c.answer }}</div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="muted">This deck has no cards. Try regenerating.</p>
+  {% endif %}
+</div>
+{% endblock %}

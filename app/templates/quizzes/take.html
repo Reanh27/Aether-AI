@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>{{ quiz.topic }}</h1>
+    <p class="muted">
+      <span class="pill diff-{{ quiz.difficulty or 'medium' }}">{{ quiz.difficulty or 'medium' }}</span>
+      · {{ parsed|length }} questions
+    </p>
+  </div>
+  <a class="btn-outline" href="{{ url_for('quizzes.index') }}">← Back</a>
+</div>
+
+<form method="POST" id="quiz-form">
+  {% for q, opts in parsed %}
+    <div class="card question" data-qid="{{ q.id }}">
+      <div class="q-head">
+        <span class="q-num">{{ loop.index }}</span>
+        <h3>{{ q.question }}</h3>
+      </div>
+      <div class="opts-grid">
+        {% for opt in opts %}
+          <label class="opt">
+            <input type="radio" name="q{{ q.id }}" value="{{ loop.index0 }}" required>
+            <span class="opt-letter">{{ 'ABCD'[loop.index0] }}</span>
+            <span class="opt-text">{{ opt }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+
+  <div class="quiz-footer">
+    <div class="muted small">
+      <span id="answered-count">0</span> / {{ parsed|length }} answered
+    </div>
+    <button class="btn btn-lg" id="submit-btn" disabled>Submit answers</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("quiz-form");
+  const total = form.querySelectorAll(".question").length;
+  const counter = document.getElementById("answered-count");
+  const btn = document.getElementById("submit-btn");
+
+  function updateProgress() {
+    let answered = 0;
+    form.querySelectorAll(".question").forEach((q) => {
+      if (q.querySelector("input[type=radio]:checked")) answered++;
+    });
+    counter.textContent = answered;
+    btn.disabled = answered < total;
+  }
+
+  form.addEventListener("change", updateProgress);
+
+  form.addEventListener("change", (e) => {
+    if (e.target.type !== "radio") return;
+    const q = e.target.closest(".question");
+    q.querySelectorAll(".opt").forEach((o) => o.classList.remove("selected"));
+    e.target.closest(".opt").classList.add("selected");
+  });
+</script>
+{% endblock %}

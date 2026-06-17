@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card">
+  <div class="auth-logo">✦</div>
+  <h1>Create your account</h1>
+  <p class="muted">Sign up to get started with {{ BRAND }}</p>
+  <form method="POST" novalidate>
+    {{ form.hidden_tag() }}
+    <label>{{ form.name.label }} {{ form.name(class_="input") }}</label>
+    {% for e in form.name.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    <label>{{ form.email.label }} {{ form.email(class_="input") }}</label>
+    {% for e in form.email.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    <label>{{ form.password.label }} {{ form.password(class_="input") }}</label>
+    {% for e in form.password.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    <label>{{ form.confirm.label }} {{ form.confirm(class_="input") }}</label>
+    {% for e in form.confirm.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    {{ form.submit(class_="btn btn-full") }}
+  </form>
+  <p class="muted center mt-12">Already have an account?
+    <a href="{{ url_for('auth.login') }}">Log in</a></p>
+</div>
+{% endblock %}
