@@ -108,3 +108,16 @@ class PdfUploadForm(FlaskForm):
                         FileAllowed(["pdf"], message="PDF files only.")
                     ])
     submit = SubmitField("✨ Upload & Summarize")
+
+
+class ForgotPasswordForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    submit = SubmitField("Send reset link")
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField("New password",
+                             validators=[DataRequired(), Length(min=6)])
+    confirm = PasswordField("Confirm new password",
+                            validators=[DataRequired(), EqualTo("password")])
+    submit = SubmitField("Save new password")

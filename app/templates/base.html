@@ -106,11 +106,23 @@
 {% endif %}
 
 <main class="{% if current_user.is_authenticated %}content{% else %}container{% endif %}">
-  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% for category, msg in messages %}
       <div class="flash flash-{{ category }}">{{ msg }}</div>
     {% endfor %}
   {% endwith %}
+
+  {% if current_user.is_authenticated and not current_user.email_verified %}
+    <div class="verify-banner">
+      <span>
+        ⚠️ <strong>Please verify your email</strong> ({{ current_user.email }}) to secure your account.
+      </span>
+      <form method="POST" action="{{ url_for('auth.resend_verification') }}" style="display:inline;">
+        <button class="btn-outline small">Resend email</button>
+      </form>
+    </div>
+  {% endif %}
+
   {% block content %}{% endblock %}
 </main>
 

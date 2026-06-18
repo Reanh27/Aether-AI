@@ -1,0 +1,11 @@
+Hi {{ user.name }},
+
+Welcome to {{ brand }}!
+
+Please verify your email by opening this link (valid for 24 hours):
+
+{{ link }}
+
+If you didn't sign up, you can ignore this email.
+
+— The {{ brand }} team

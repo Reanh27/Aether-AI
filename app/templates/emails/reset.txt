@@ -1,0 +1,11 @@
+Hi {{ user.name }},
+
+Someone (hopefully you) asked to reset your {{ brand }} password.
+
+Open this link to choose a new password (valid for 1 hour):
+
+{{ link }}
+
+If you didn't request this, you can safely ignore this email — your password won't change.
+
+— The {{ brand }} team

@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(80), nullable=False, default="Learner")
     password_hash = db.Column(db.String(256), nullable=False)
+    email_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     notes = db.relationship("Note", backref="user", cascade="all,delete", lazy=True)
