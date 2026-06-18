@@ -17,7 +17,7 @@ class User(UserMixin, db.Model):
     decks = db.relationship("Deck", backref="user", cascade="all,delete", lazy=True)
     quizzes = db.relationship("Quiz", backref="user", cascade="all,delete", lazy=True)
     sessions = db.relationship("ChatSession", backref="user", cascade="all,delete", lazy=True)
-    plans = db.relationship("PlanItem", backref="user", cascade="all,delete", lazy=True)
+    plans = db.relationship("StudyPlan", backref="user", cascade="all,delete", lazy=True)
     rooms = db.relationship("StudyRoom", backref="user", cascade="all,delete", lazy=True)
     activities = db.relationship("StudyActivity", backref="user", cascade="all,delete", lazy=True)
 
@@ -98,10 +98,34 @@ class ChatMessage(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# ---- AI Study Planner ----
+class StudyPlan(db.Model):
+    __tablename__ = "study_plans"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    goal = db.Column(db.String(200), nullable=False)
+    days = db.Column(db.Integer, nullable=False, default=7)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    items = db.relationship("PlanItem", backref="plan", cascade="all,delete",
+                            lazy=True, order_by="PlanItem.id")
+
+    @property
+    def completed(self):
+        return sum(1 for i in self.items if i.done)
+
+    @property
+    def total(self):
+        return len(self.items)
+
+    @property
+    def pct(self):
+        return int(round(self.completed / self.total * 100)) if self.total else 0
+
+
 class PlanItem(db.Model):
     __tablename__ = "plan_items"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    plan_id = db.Column(db.Integer, db.ForeignKey("study_plans.id"), nullable=False)
     day = db.Column(db.String(20), nullable=False)
     topic = db.Column(db.String(200), nullable=False)
     detail = db.Column(db.Text, nullable=True)
@@ -109,6 +133,7 @@ class PlanItem(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# ---- Study Rooms (collaborative spaces) ----
 class StudyRoom(db.Model):
     __tablename__ = "study_rooms"
     id = db.Column(db.Integer, primary_key=True)
@@ -116,9 +141,37 @@ class StudyRoom(db.Model):
     name = db.Column(db.String(120), nullable=False)
     subject = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    invite_code = db.Column(db.String(8), unique=True, nullable=False, index=True)
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    members = db.relationship("RoomMember", backref="room",
+                              cascade="all,delete", lazy=True)
+    messages = db.relationship("RoomMessage", backref="room",
+                               cascade="all,delete", lazy=True,
+                               order_by="RoomMessage.created_at")
+    owner = db.relationship("User", foreign_keys=[user_id],
+                            overlaps="rooms,user")
 
+
+class RoomMember(db.Model):
+    __tablename__ = "room_members"
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey("study_rooms.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship("User", foreign_keys=[user_id])
+    __table_args__ = (db.UniqueConstraint("room_id", "user_id",
+                                          name="uniq_room_member"),)
+
+
+class RoomMessage(db.Model):
+    __tablename__ = "room_messages"
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey("study_rooms.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    author = db.relationship("User", foreign_keys=[user_id])
 
 class StudyActivity(db.Model):
     __tablename__ = "study_activity"

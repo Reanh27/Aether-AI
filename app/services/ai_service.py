@@ -216,26 +216,50 @@ def generate_quiz(topic, n=5, difficulty="medium"):
 
 
 def generate_plan(goal, days=7):
-    ctx = wiki.context_for(goal, max_chars=2000)
+    """Returns list of {day, topic, detail} items.
+    Allows 2-3 items per day for richer plans."""
+    ctx = wiki.context_for(goal, max_chars=2500)
     extra = f"\n\nBackground reference:\n{ctx}" if ctx else ""
     try:
         raw = _ask(
             f"Create a focused, practical {days}-day study plan for the goal: "
-            f"'{goal}'. Each day must have a specific topic (not generic) and "
-            f"actionable detail (1-2 concrete tasks). Progress from basics to advanced. "
+            f"'{goal}'. Progress from basics to advanced. "
+            f"For EACH day, output 2 or 3 specific subtopic items. "
+            f"Each item must have:\n"
+            f"  - 'day': 'Day 1', 'Day 2', etc.\n"
+            f"  - 'topic': a SPECIFIC subtopic (e.g. 'Variables and data types' "
+            f"not 'Python basics')\n"
+            f"  - 'detail': a concrete 1-2 sentence task (what to read, watch, "
+            f"build or practice). Mention specific exercises.\n"
             f'Return ONLY a JSON array like '
             f'[{{"day":"Day 1","topic":"...","detail":"..."}}]. '
+            f"Aim for about {days * 2} total items. "
             f"No markdown, no commentary, no fences.{extra}",
-            system="You build clear day-by-day study plans. Output strict JSON only.")
+            system="You build clear, specific, actionable day-by-day study plans. Output strict JSON only.")
         data = _parse_json_array(raw) if raw else None
         if data:
-            return data[:days]
+            cleaned = []
+            for it in data:
+                if it.get("topic") and it.get("day"):
+                    cleaned.append({
+                        "day": str(it["day"])[:20],
+                        "topic": str(it["topic"])[:200],
+                        "detail": str(it.get("detail", ""))[:500],
+                    })
+            if cleaned:
+                return cleaned
     except Exception:
         pass
-    return [{"day": f"Day {i}",
-             "topic": f"{goal} — part {i}",
-             "detail": f"Study the basics for day {i}. Take notes and try 5 practice questions."}
-            for i in range(1, days + 1)]
+    # Mock fallback — 2 items per day
+    items = []
+    for i in range(1, days + 1):
+        items.append({"day": f"Day {i}",
+                      "topic": f"{goal} — fundamentals part {i}",
+                      "detail": "Read introduction. Watch one explainer video. Write 3 key takeaways."})
+        items.append({"day": f"Day {i}",
+                      "topic": f"{goal} — practice {i}",
+                      "detail": "Try 5 practice exercises. Review mistakes."})
+    return items
 
 
 def _looks_factual(question):

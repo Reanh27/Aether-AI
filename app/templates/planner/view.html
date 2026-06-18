@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <a href="{{ url_for('planner.index') }}" class="muted small">← All plans</a>
+    <h1>{{ plan.goal }}</h1>
+    <p class="muted">{{ plan.days }} days · {{ plan.total }} tasks · created {{ plan.created_at.strftime('%b %d, %Y') }}</p>
+  </div>
+  <div class="row-gap">
+    <form method="POST" action="{{ url_for('planner.regenerate', plan_id=plan.id) }}"
+          onsubmit="return confirm('Replace all tasks with a fresh AI plan?')">
+      <button class="btn-outline">↻ Regenerate</button>
+    </form>
+    <form method="POST" action="{{ url_for('planner.delete', plan_id=plan.id) }}"
+          onsubmit="return confirm('Delete this plan?')">
+      <button class="btn-outline danger">Delete</button>
+    </form>
+  </div>
+</div>
+
+<div class="card plan-progress">
+  <div class="row-between">
+    <div>
+      <h3>Progress</h3>
+      <p class="muted small">{{ plan.completed }} of {{ plan.total }} tasks complete</p>
+    </div>
+    <div class="plan-pct">{{ plan.pct }}%</div>
+  </div>
+  <div class="score-bar">
+    <div class="score-fill" style="width: {{ plan.pct }}%"></div>
+  </div>
+</div>
+
+{% for day, items in groups.items() %}
+  {% set day_total = items|length %}
+  {% set day_done = items|selectattr('done')|list|length %}
+  <div class="card day-card mt-24 {% if day_done == day_total %}day-complete{% endif %}">
+    <div class="row-between day-head">
+      <h2><span class="day-tag">{{ day }}</span></h2>
+      <span class="muted small">{{ day_done }} / {{ day_total }} done</span>
+    </div>
+
+    <ul class="plan-list">
+      {% for it in items %}
+        <li class="{% if it.done %}done{% endif %}">
+          <form method="POST" action="{{ url_for('planner.toggle', plan_id=plan.id, item_id=it.id) }}" class="check-form">
+            <button title="Toggle">{% if it.done %}✓{% else %}○{% endif %}</button>
+          </form>
+          <div class="task-body">
+            <strong>{{ it.topic }}</strong>
+            {% if it.detail %}<p class="muted">{{ it.detail }}</p>{% endif %}
+            <div class="task-actions">
+              <a class="chip small" href="{{ url_for('flashcards.new') }}?topic={{ it.topic|urlencode }}">
+                🃏 Flashcards
+              </a>
+              <a class="chip small" href="{{ url_for('quizzes.new') }}?topic={{ it.topic|urlencode }}">
+                ❓ Quiz
+              </a>
+              <a class="chip small" href="{{ url_for('wikipedia.index') }}?q={{ it.topic|urlencode }}">
+                📖 Wikipedia
+              </a>
+              <a class="chip small" href="{{ url_for('chat.index') }}">
+                💬 Ask AI
+              </a>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endfor %}
+
+{% if not groups %}
+<div class="card empty">
+  <p class="muted">This plan has no tasks. Try regenerating.</p>
+</div>
+{% endif %}
+{% endblock %}

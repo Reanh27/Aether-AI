@@ -79,6 +79,17 @@ class RoomForm(FlaskForm):
     submit = SubmitField("Create room")
 
 
+class JoinRoomForm(FlaskForm):
+    code = StringField("Invite code",
+                       validators=[DataRequired(), Length(min=4, max=8)])
+    submit = SubmitField("Join room")
+
+
+class RoomMessageForm(FlaskForm):
+    content = TextAreaField("Message",
+                            validators=[DataRequired(), Length(max=1000)])
+    submit = SubmitField("Post")
+
 class PdfSummaryForm(FlaskForm):
     """Paste text directly."""
     title = StringField("Title", validators=[DataRequired(), Length(max=200)])

@@ -2,28 +2,150 @@
 {% block content %}
 <div class="page-head row-between">
   <div>
+    <a href="{{ url_for('rooms.index') }}" class="muted small">← All rooms</a>
     <h1>{{ room.name }}</h1>
-    <p class="muted">{{ room.subject }}</p>
+    <p class="muted">
+      <span class="pill diff-medium">{{ room.subject }}</span>
+      <span class="pill {{ 'on' if room.active else 'off' }}">
+        {{ 'Active' if room.active else 'Paused' }}
+      </span>
+    </p>
   </div>
-  <span class="pill {{ 'on' if room.active else 'off' }}">
-    {{ 'Active' if room.active else 'Paused' }}
-  </span>
+  {% if is_owner %}
+  <div class="row-gap">
+    <form method="POST" action="{{ url_for('rooms.toggle', room_id=room.id) }}">
+      <button class="btn-outline">{{ 'Pause' if room.active else 'Resume' }}</button>
+    </form>
+    <form method="POST" action="{{ url_for('rooms.delete', room_id=room.id) }}"
+          onsubmit="return confirm('Delete this room? All messages will be lost.')">
+      <button class="btn-outline danger">Delete</button>
+    </form>
+  </div>
+  {% else %}
+  <form method="POST" action="{{ url_for('rooms.leave', room_id=room.id) }}"
+        onsubmit="return confirm('Leave this room?')">
+    <button class="btn-outline danger">Leave room</button>
+  </form>
+  {% endif %}
 </div>
+
+{% if room.description %}
 <div class="card">
-  <p>{{ room.description or 'No description added.' }}</p>
+  <p>{{ room.description }}</p>
 </div>
-<div class="grid-3 mt-24">
-  <a class="card link" href="{{ url_for('flashcards.new') }}">
-    <h3>🃏 Add Flashcards</h3>
-    <p class="muted">Build a deck for this subject.</p>
-  </a>
-  <a class="card link" href="{{ url_for('quizzes.new') }}">
-    <h3>❓ Take a Quiz</h3>
-    <p class="muted">Test what you know.</p>
-  </a>
-  <a class="card link" href="{{ url_for('chat.index') }}">
-    <h3>💬 Ask AI Tutor</h3>
-    <p class="muted">Get explanations on demand.</p>
-  </a>
+{% endif %}
+
+<div class="card invite-card mt-24">
+  <div class="row-between">
+    <div>
+      <h3>📨 Invite code</h3>
+      <p class="muted small">Share this code so others can join the room.</p>
+    </div>
+    {% if is_owner %}
+    <form method="POST" action="{{ url_for('rooms.new_code', room_id=room.id) }}"
+          onsubmit="return confirm('Generate a new code? The old one will stop working.')">
+      <button class="btn-outline small">↻ New code</button>
+    </form>
+    {% endif %}
+  </div>
+  <div class="invite-code-box">
+    <code id="invite-code">{{ room.invite_code }}</code>
+    <button class="btn-outline small" id="copy-code-btn">📋 Copy</button>
+  </div>
 </div>
+
+<div class="dash-grid mt-24">
+  <section class="card">
+    <h2>💬 Room chat</h2>
+    <div class="room-messages" id="room-messages">
+      {% if room.messages %}
+        {% for m in room.messages %}
+          <div class="room-msg {% if m.user_id == current_user.id %}mine{% endif %}">
+            <div class="msg-meta">
+              <strong>{{ m.author.name }}</strong>
+              <span class="muted small">· {{ m.created_at.strftime('%b %d, %H:%M') }}</span>
+            </div>
+            <div class="msg-body">{{ m.content }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="muted empty-msg">No messages yet. Start the conversation!</p>
+      {% endif %}
+    </div>
+    <form method="POST" class="room-msg-form">
+      {{ msg_form.hidden_tag() }}
+      {{ msg_form.content(class_="textarea", rows=2,
+          placeholder="Write a message to the room...") }}
+      {{ msg_form.submit(class_="btn") }}
+    </form>
+  </section>
+
+  <aside class="dash-side">
+    <div class="card">
+      <h3>👥 Members ({{ (room.members|length) + 1 }})</h3>
+      <ul class="member-list">
+        <li>
+          <span class="avatar">{{ room.owner.name[:1]|upper }}</span>
+          <div>
+            <strong>{{ room.owner.name }}</strong>
+            <span class="muted small">· Owner</span>
+          </div>
+        </li>
+        {% for m in room.members %}
+          <li>
+            <span class="avatar">{{ m.user.name[:1]|upper }}</span>
+            <div>
+              <strong>{{ m.user.name }}</strong>
+              <span class="muted small">· joined {{ m.joined_at.strftime('%b %d') }}</span>
+            </div>
+            {% if is_owner %}
+              <form method="POST" action="{{ url_for('rooms.kick', room_id=room.id, member_id=m.id) }}"
+                    onsubmit="return confirm('Remove {{ m.user.name }} from the room?')">
+                <button class="kick-btn" title="Remove member">✕</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>🚀 Study together</h3>
+      <p class="muted small">Quick links for this room's subject.</p>
+      <div class="task-actions">
+        <a class="chip small" href="{{ url_for('flashcards.new') }}?topic={{ room.subject|urlencode }}">
+          🃏 Make flashcards
+        </a>
+        <a class="chip small" href="{{ url_for('quizzes.new') }}?topic={{ room.subject|urlencode }}">
+          ❓ Make a quiz
+        </a>
+        <a class="chip small" href="{{ url_for('wikipedia.index') }}?q={{ room.subject|urlencode }}">
+          📖 Wikipedia
+        </a>
+        <a class="chip small" href="{{ url_for('planner.new') }}?goal={{ room.subject|urlencode }}">
+          ✧ Plan
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const copyBtn = document.getElementById("copy-code-btn");
+  const codeEl = document.getElementById("invite-code");
+  copyBtn?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(codeEl.textContent.trim());
+      copyBtn.textContent = "✓ Copied!";
+      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
+    } catch (err) {
+      alert("Copy failed: " + err.message);
+    }
+  });
+
+  const msgBox = document.getElementById("room-messages");
+  if (msgBox) msgBox.scrollTop = msgBox.scrollHeight;
+</script>
 {% endblock %}

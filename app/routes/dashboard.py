@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from collections import OrderedDict
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from ..models import Note, Deck, Quiz, StudyRoom, StudyActivity, PlanItem
+from ..models import Note, Deck, Quiz, StudyRoom, StudyActivity, PlanItem, StudyPlan
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -16,7 +16,10 @@ def index():
     total_decks = Deck.query.filter_by(user_id=uid).count()
     cards_studied = StudyActivity.query.filter_by(user_id=uid, kind="card").count()
     active_rooms = StudyRoom.query.filter_by(user_id=uid, active=True).count()
-    upcoming = PlanItem.query.filter_by(user_id=uid, done=False).count()
+    upcoming = (PlanItem.query
+                .join(StudyPlan, PlanItem.plan_id == StudyPlan.id)
+                .filter(StudyPlan.user_id == uid, PlanItem.done == False)
+                .count())
 
     quizzes = Quiz.query.filter_by(user_id=uid).filter(Quiz.score.isnot(None)).all()
     if quizzes:

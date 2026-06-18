@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>⚇ Study Rooms</h1>
+    <p class="muted">Create your own room or join a friend's with an invite code.</p>
+  </div>
+  <a class="btn" href="{{ url_for('rooms.new') }}">+ Create room</a>
+</div>
+
+<div class="card">
+  <h3>Join a room</h3>
+  <p class="muted small">Got an invite code from a friend? Enter it here.</p>
+  <form method="POST" action="{{ url_for('rooms.join') }}" class="row-form">
+    {{ join_form.hidden_tag() }}
+    <div class="grow">
+      {{ join_form.code(class_="input code-input",
+          placeholder="e.g. AB3X9P",
+          autocapitalize="characters",
+          autocomplete="off",
+          style="text-transform: uppercase; letter-spacing: 4px; font-weight: 700;") }}
+    </div>
+    {{ join_form.submit(class_="btn") }}
+  </form>
+</div>
+
+{% if owned %}
+<h2 class="mt-24">Your rooms <span class="muted small">({{ owned|length }})</span></h2>
+<div class="grid-3">
+  {% for r in owned %}
+    <div class="card deck-card">
+      <div class="row-between">
+        <h3>{{ r.name }}</h3>
+        <span class="pill diff-medium">Owner</span>
+      </div>
+      <p class="muted small">{{ r.subject }}</p>
+      <p class="muted small">
+        👥 {{ (r.members|length) + 1 }} member{% if (r.members|length) + 1 != 1 %}s{% endif %}
+        · {{ r.messages|length }} message{% if r.messages|length != 1 %}s{% endif %}
+      </p>
+      <div class="invite-code-mini">
+        <span class="muted small">Code:</span>
+        <code>{{ r.invite_code }}</code>
+      </div>
+      <div class="row-gap">
+        <a class="btn" href="{{ url_for('rooms.view', room_id=r.id) }}">Open</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if joined %}
+<h2 class="mt-24">Rooms you joined <span class="muted small">({{ joined|length }})</span></h2>
+<div class="grid-3">
+  {% for r in joined %}
+    <div class="card deck-card">
+      <div class="row-between">
+        <h3>{{ r.name }}</h3>
+        <span class="pill diff-easy">Member</span>
+      </div>
+      <p class="muted small">{{ r.subject }}</p>
+      <p class="muted small">
+        👤 Owner: {{ r.owner.name }} ·
+        👥 {{ (r.members|length) + 1 }} members
+      </p>
+      <div class="row-gap">
+        <a class="btn" href="{{ url_for('rooms.view', room_id=r.id) }}">Open</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if not owned and not joined %}
+<div class="card empty mt-24">
+  <h2 class="muted">No rooms yet</h2>
+  <p class="muted">Create your own study room, or join a friend's with their invite code.</p>
+  <a class="btn btn-lg" href="{{ url_for('rooms.new') }}">+ Create your first room</a>
+</div>
+{% endif %}
+{% endblock %}

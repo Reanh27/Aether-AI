@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head row-between">
+  <div>
+    <h1>✧ AI Planner</h1>
+    <p class="muted">Your personalised study plans, generated from any goal.</p>
+  </div>
+  <a class="btn" href="{{ url_for('planner.new') }}">+ New plan</a>
+</div>
+
+{% if plans %}
+<div class="grid-3">
+  {% for p in plans %}
+    <div class="card deck-card">
+      <h3>{{ p.goal }}</h3>
+      <p class="muted small">
+        {{ p.days }} days · {{ p.total }} tasks · {{ p.created_at.strftime('%b %d, %Y') }}
+      </p>
+      <div class="score-bar">
+        <div class="score-fill" style="width: {{ p.pct }}%"></div>
+      </div>
+      <p class="muted small">{{ p.completed }} / {{ p.total }} done ({{ p.pct }}%)</p>
+      <div class="row-gap">
+        <a class="btn" href="{{ url_for('planner.view', plan_id=p.id) }}">▶ Open</a>
+        <form method="POST" action="{{ url_for('planner.delete', plan_id=p.id) }}"
+              onsubmit="return confirm('Delete this plan?')">
+          <button class="btn-outline danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="card empty">
+    <h2 class="muted">No plans yet</h2>
+    <p class="muted">Tell Aether what you want to learn — it'll build a day-by-day plan.</p>
+    <a class="btn btn-lg" href="{{ url_for('planner.new') }}">+ Create your first plan</a>
+  </div>
+{% endif %}
+{% endblock %}

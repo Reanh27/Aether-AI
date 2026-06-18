@@ -600,19 +600,49 @@ button:disabled, input[type="submit"]:disabled {
   display: flex; gap: 14px; padding: 14px 0;
   border-bottom: 1px solid var(--border);
 }
-.plan-list li:last-child { border-bottom: 0; }
-.plan-list li.done strong { text-decoration: line-through; color: var(--muted); }
+/* ============================================
+   Planner
+   ============================================ */
+.plan-progress { background: linear-gradient(135deg, #fff, var(--accent-soft)); }
+.plan-pct {
+  font-size: 2rem; font-weight: 700; color: var(--accent-dark);
+}
+.day-card { transition: opacity 0.2s; }
+.day-card.day-complete { opacity: 0.65; }
+.day-head h2 { margin: 0; }
 .day-tag {
   display: inline-block; background: var(--accent-soft); color: var(--accent-dark);
-  padding: 2px 10px; border-radius: 999px; font-size: 0.75rem;
-  font-weight: 600; margin-bottom: 4px;
+  padding: 6px 14px; border-radius: 999px; font-size: 0.95rem;
+  font-weight: 700;
+}
+.plan-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.plan-list li {
+  display: flex; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.plan-list li:last-child { border-bottom: 0; }
+.plan-list li.done strong { text-decoration: line-through; color: var(--muted); }
+.plan-list li.done .task-body p { opacity: 0.7; }
+.task-body { flex: 1; }
+.task-body p { margin: 4px 0 8px; }
+.task-actions {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 8px;
+}
+.chip.small {
+  padding: 4px 10px; font-size: 0.78rem;
 }
 .check-form button {
-  width: 28px; height: 28px; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: 50%;
   border: 2px solid var(--accent); background: white; color: var(--accent-dark);
-  cursor: pointer; font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; font-weight: 700; font-size: 0.95rem;
+  flex-shrink: 0;
 }
-.plan-list li.done .check-form button { background: var(--accent); color: white; }
+.check-form button:hover { background: var(--accent-soft); }
+.plan-list li.done .check-form button {
+  background: var(--good); color: white; border-color: var(--good);
+}
 
 /* ============================================
    Footer
@@ -739,3 +769,85 @@ a.chip {
 }
 .upload-empty p, .upload-filled p { margin: 4px 0; }
 .upload-filled button { margin-top: 10px; }
+
+/* ============================================
+   Study Rooms
+   ============================================ */
+.code-input {
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+  font-size: 1.1rem;
+}
+.invite-code-mini {
+  margin: 8px 0;
+  display: flex; gap: 6px; align-items: center;
+}
+.invite-code-mini code {
+  background: var(--accent-soft); color: var(--accent-dark);
+  padding: 2px 8px; border-radius: 6px;
+  font-weight: 700; letter-spacing: 2px;
+}
+.invite-card {
+  background: linear-gradient(135deg, #fff, var(--accent-soft));
+  border-left: 4px solid var(--accent);
+}
+.invite-code-box {
+  display: flex; gap: 12px; align-items: center;
+  margin-top: 12px;
+}
+.invite-code-box code {
+  flex: 1; padding: 14px 20px;
+  background: white; border: 2px dashed var(--accent);
+  border-radius: 10px; text-align: center;
+  font-size: 1.8rem; font-weight: 800;
+  letter-spacing: 6px; color: var(--accent-dark);
+  font-family: ui-monospace, "Cascadia Code", Menlo, monospace;
+}
+
+/* Member list */
+.member-list { list-style: none; padding: 0; margin: 0; }
+.member-list li {
+  display: flex; gap: 10px; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.member-list li:last-child { border-bottom: 0; }
+.member-list li > div { flex: 1; min-width: 0; }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #fb923c);
+  color: white; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.kick-btn {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  font-size: 1rem; padding: 4px 8px;
+}
+.kick-btn:hover { color: var(--bad); }
+
+/* Room messages */
+.room-messages {
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px; min-height: 240px; max-height: 400px;
+  overflow-y: auto; margin: 12px 0;
+}
+.empty-msg { text-align: center; padding: 40px 20px; }
+.room-msg {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.room-msg.mine {
+  background: var(--accent-soft);
+  border-color: #fed7aa;
+}
+.msg-meta { margin-bottom: 4px; font-size: 0.85rem; }
+.msg-body { line-height: 1.5; white-space: pre-wrap; }
+.room-msg-form {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.room-msg-form .textarea { margin: 0; }
+.room-msg-form .btn { flex-shrink: 0; }

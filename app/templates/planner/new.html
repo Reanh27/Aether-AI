@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Create a study plan</h1>
+  <p class="muted">Tell Aether what you want to learn — it'll build a structured day-by-day plan from Wikipedia + AI.</p>
+</div>
+
+<div class="card">
+  <form method="POST" class="row-form" id="plan-form">
+    {{ form.hidden_tag() }}
+    <div class="grow">
+      <label>{{ form.goal.label }}
+        {{ form.goal(class_="input",
+            placeholder="e.g. Master Python in a week, Learn React hooks, Study WWII") }}</label>
+      {% for e in form.goal.errors %}<small class="err">{{ e }}</small>{% endfor %}
+    </div>
+    <div style="width: 160px;">
+      <label>{{ form.days.label }} {{ form.days(class_="input") }}</label>
+    </div>
+    {{ form.submit(class_="btn", id="submit-btn") }}
+  </form>
+  <p class="muted small mt-12">
+    💡 Tip: be specific. <em>"Learn Python decorators"</em> works better than <em>"learn coding"</em>.
+  </p>
+</div>
+
+<div class="card mt-24 quick-suggest">
+  <h3>Quick suggestions</h3>
+  <p class="muted small">Click one to auto-fill the goal.</p>
+  <div class="suggest-grid">
+    {% for s in ['Master Python basics', 'Learn React hooks',
+                 'Understand World War II', 'Study quantum mechanics',
+                 'Master linear algebra', 'Learn web design fundamentals',
+                 'Understand human anatomy', 'Study the French Revolution'] %}
+      <button type="button" class="chip" data-goal="{{ s }}">{{ s }}</button>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll(".chip[data-goal]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const inp = document.querySelector('input[name="goal"]');
+      if (inp) { inp.value = btn.dataset.goal; inp.focus(); }
+    });
+  });
+  const form = document.getElementById("plan-form");
+  const btn = document.getElementById("submit-btn");
+  form?.addEventListener("submit", () => {
+    btn.disabled = true;
+    if (btn.tagName === "BUTTON") btn.textContent = "✨ Generating…";
+    else btn.value = "✨ Generating…";
+  });
+</script>
+{% endblock %}

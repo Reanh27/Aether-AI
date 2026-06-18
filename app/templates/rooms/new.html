@@ -1,13 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page-head"><h1>New Study Room</h1></div>
+<div class="page-head">
+  <h1>Create a study room</h1>
+  <p class="muted">Each room gets a unique 6-character invite code you can share with friends.</p>
+</div>
 <div class="card">
   <form method="POST">
     {{ form.hidden_tag() }}
-    <label>{{ form.name.label }} {{ form.name(class_="input") }}</label>
-    <label>{{ form.subject.label }} {{ form.subject(class_="input") }}</label>
-    <label>{{ form.description.label }} {{ form.description(class_="textarea", rows=4) }}</label>
-    {{ form.submit(class_="btn") }}
+    <label>{{ form.name.label }}
+      {{ form.name(class_="input", placeholder="e.g. CS101 Study Group") }}</label>
+    {% for e in form.name.errors %}<small class="err">{{ e }}</small>{% endfor %}
+
+    <label>{{ form.subject.label }}
+      {{ form.subject(class_="input", placeholder="e.g. Computer Science") }}</label>
+    {% for e in form.subject.errors %}<small class="err">{{ e }}</small>{% endfor %}
+
+    <label>{{ form.description.label }}
+      {{ form.description(class_="textarea", rows=4,
+          placeholder="Optional: what's this room about?") }}</label>
+
+    {{ form.submit(class_="btn btn-lg") }}
   </form>
 </div>
+<p class="muted small center mt-12">
+  <a href="{{ url_for('rooms.index') }}">← Back to rooms</a>
+</p>
 {% endblock %}
