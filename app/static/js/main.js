@@ -1,4 +1,4 @@
-// Global helpers + mobile sidebar toggle
+// Global helpers + mobile sidebar toggle + dark mode
 document.addEventListener("DOMContentLoaded", () => {
   // Auto-dismiss flash messages
   document.querySelectorAll(".flash").forEach((el) => {
@@ -10,7 +10,24 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => el.remove(), 4500);
   });
 
-  // Mobile sidebar toggle
+  // ---------- Dark mode toggle ----------
+  const themeToggle = document.getElementById("theme-toggle");
+  themeToggle?.addEventListener("click", () => {
+    const root = document.documentElement;
+    const current = root.getAttribute("data-theme") || "light";
+    const next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("aether-theme", next);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", next === "dark" ? "#0b1020" : "#f97316");
+  });
+  (function syncThemeMeta() {
+    const current = document.documentElement.getAttribute("data-theme") || "light";
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", current === "dark" ? "#0b1020" : "#f97316");
+  })();
+
+  // ---------- Mobile sidebar toggle ----------
   const sidebar = document.getElementById("sidebar");
   const hamburger = document.getElementById("hamburger");
   const backdrop = document.getElementById("sidebar-backdrop");
@@ -28,19 +45,17 @@ document.addEventListener("DOMContentLoaded", () => {
   hamburger?.addEventListener("click", openSidebar);
   backdrop?.addEventListener("click", closeSidebar);
 
-  // Close sidebar after clicking a link (mobile UX)
   sidebar?.querySelectorAll(".side-nav a, .side-logout").forEach((link) => {
     link.addEventListener("click", () => {
       if (window.innerWidth < 900) closeSidebar();
     });
   });
 
-  // Close on Escape
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeSidebar();
   });
 
-  // Auto-grow textareas
+  // ---------- Auto-grow textareas ----------
   document.querySelectorAll("textarea.input, textarea.textarea").forEach((ta) => {
     const grow = () => {
       ta.style.height = "auto";
