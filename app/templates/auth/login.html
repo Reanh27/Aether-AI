@@ -12,7 +12,9 @@
     {% for e in form.password.errors %}<small class="err">{{ e }}</small>{% endfor %}
     {{ form.submit(class_="btn btn-full") }}
   </form>
-  <p class="muted center mt-12">Don't have an account?
+    <p class="muted center mt-12">Don't have an account?
     <a href="{{ url_for('auth.register') }}">Create one</a></p>
-</div>
+  <p class="muted center small">
+    <a href="{{ url_for('main.welcome') }}">← Learn about {{ BRAND }}</a>
+  </p>
 {% endblock %}
