@@ -2,27 +2,57 @@
 {% block content %}
 <div class="page-head row-between">
   <div>
-    <h1>Notes</h1>
-    <p class="muted">Your saved notes and AI summaries.</p>
+    <h1>📝 Notes</h1>
+    <p class="muted">Your saved notes, summaries from PDFs and documents.</p>
   </div>
   <a class="btn" href="{{ url_for('notes.new') }}">+ New note</a>
 </div>
+
+<form method="GET" class="notes-search">
+  <input type="text" name="q" class="input"
+         placeholder="🔍 Search your notes..."
+         value="{{ query }}" autocomplete="off">
+  {% if query %}
+    <a class="btn-outline" href="{{ url_for('notes.index') }}">Clear</a>
+  {% else %}
+    <button class="btn">Search</button>
+  {% endif %}
+</form>
 
 {% if notes %}
 <div class="card">
   <ul class="row-list">
     {% for n in notes %}
-      <li>
-        <a href="{{ url_for('notes.view', note_id=n.id) }}"><strong>{{ n.title }}</strong></a>
-        <span class="muted small">· updated {{ n.updated_at.strftime('%b %d, %Y') }}</span>
+      <li class="note-row">
+        <div class="note-row-body">
+          <a href="{{ url_for('notes.view', note_id=n.id) }}">
+            <strong>{{ n.title }}</strong>
+          </a>
+          <p class="muted small">
+            {{ n.updated_at.strftime('%b %d, %Y') }}
+            {% if n.summary %} · <span class="pill on">✨ Summary</span>{% endif %}
+          </p>
+          {% if n.content %}
+            <p class="muted note-snippet">{{ n.content[:160] }}{% if n.content|length > 160 %}…{% endif %}</p>
+          {% endif %}
+        </div>
       </li>
     {% endfor %}
   </ul>
 </div>
+{% elif query %}
+  <div class="card empty">
+    <p class="muted">No notes match "<strong>{{ query }}</strong>".</p>
+    <a class="btn-outline" href="{{ url_for('notes.index') }}">Clear search</a>
+  </div>
 {% else %}
   <div class="card empty">
-    <p class="muted">No notes yet.</p>
-    <a class="btn" href="{{ url_for('notes.new') }}">Create your first note</a>
+    <h2 class="muted">No notes yet</h2>
+    <p class="muted">Create a note manually or upload a PDF for an auto-summary.</p>
+    <div class="row-gap" style="justify-content: center;">
+      <a class="btn" href="{{ url_for('notes.new') }}">+ New note</a>
+      <a class="btn-outline" href="{{ url_for('pdf.index') }}">📄 Upload PDF</a>
+    </div>
   </div>
 {% endif %}
 {% endblock %}

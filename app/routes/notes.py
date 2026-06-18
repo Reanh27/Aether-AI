@@ -1,5 +1,5 @@
-"""Notes module – CRUD + AI summarisation."""
-from flask import Blueprint, render_template, redirect, url_for, flash, abort
+"""Notes module – CRUD + AI summarisation + search."""
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
 from flask_login import login_required, current_user
 from .. import db
 from ..models import Note, StudyActivity
@@ -12,9 +12,14 @@ notes_bp = Blueprint("notes", __name__)
 @notes_bp.route("/")
 @login_required
 def index():
-    items = (Note.query.filter_by(user_id=current_user.id)
-             .order_by(Note.updated_at.desc()).all())
-    return render_template("notes/list.html", notes=items)
+    q = (request.args.get("q") or "").strip()
+    query = Note.query.filter_by(user_id=current_user.id)
+    if q:
+        like = f"%{q}%"
+        query = query.filter(db.or_(Note.title.ilike(like),
+                                    Note.content.ilike(like)))
+    items = query.order_by(Note.updated_at.desc()).all()
+    return render_template("notes/list.html", notes=items, query=q)
 
 
 @notes_bp.route("/new", methods=["GET", "POST"])

@@ -1,0 +1,38 @@
+# Python virtual environment
+venv/
+env/
+.venv/
+
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Secrets — NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Local SQLite database (don't push your local data)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# VS Code settings
+.vscode/
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
+
+# Flask session files
+flask_session/
+
+# IDE files
+.idea/
+*.swp
+
+# Logs
+*.log

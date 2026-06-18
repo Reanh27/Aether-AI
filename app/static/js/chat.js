@@ -12,11 +12,7 @@
     if (empty) empty.remove();
     const div = document.createElement("div");
     div.className = "msg msg-" + role;
-    if (isHtml) {
-      div.innerHTML = text;
-    } else {
-      div.textContent = text;
-    }
+    if (isHtml) div.innerHTML = text; else div.textContent = text;
     win.appendChild(div);
     win.scrollTop = win.scrollHeight;
     return div;
@@ -28,7 +24,10 @@
     if (!message) return;
     addMsg("user", message, false);
     input.value = "";
-    const thinking = addMsg("assistant", "<em>…thinking</em>", true);
+    // Animated "thinking" dots
+    const thinking = addMsg("assistant",
+      '<span class="thinking-dots"><span></span><span></span><span></span></span>',
+      true);
     try {
       const res = await fetch(`/chat/${sessionId}/send`, {
         method: "POST",
@@ -49,5 +48,12 @@
       thinking.innerHTML = "<em>Error contacting AI service.</em>";
     }
     win.scrollTop = win.scrollHeight;
+  });
+
+  // Ctrl/Cmd+Enter shortcut
+  input.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      form.requestSubmit();
+    }
   });
 })();
