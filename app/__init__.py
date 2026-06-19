@@ -16,11 +16,17 @@ login_manager.login_message_category = "info"
 
 def create_app():
     from .config import Config
+    from werkzeug.middleware.proxy_fix import ProxyFix  # ← ADD THIS
+
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(Config)
-    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max upload
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+
+    # Trust Render's reverse proxy for HTTPS detection
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)  # ← ADD THIS
 
     db.init_app(app)
+    ...
     login_manager.init_app(app)
 
     # ---- Markdown filter (renders AI output as nice HTML) ----
