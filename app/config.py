@@ -20,13 +20,23 @@ class Config:
 
     # Wikipedia (no key required)
     WIKI_USER_AGENT = "AetherAI/1.0 (educational study assistant)"
-        # ---- Email (SMTP) ----
+
+        # ---- Email ----
+    # Set MAIL_BACKEND=brevo for Render (works!), smtp for Gmail (blocked on Render free),
+    # or leave empty for console fallback
     MAIL_BACKEND = os.getenv("MAIL_BACKEND", "console")
+
+    # Brevo (HTTP API — works on Render!)
+    BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
+
+    # SMTP (Gmail etc — blocked on Render free tier)
     MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "1") == "1"
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "0") == "1"
     MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
-    MAIL_FROM = os.getenv("MAIL_FROM", "")
+
+    # Shared
+    MAIL_FROM = os.getenv("MAIL_FROM", "")  # display "From" address
     MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Aether AI")
-    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "0") == "1"
