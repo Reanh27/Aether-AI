@@ -18,7 +18,9 @@
       <div class="upload-empty" id="upload-empty">
         <div class="upload-icon">📄</div>
         <p><strong>Click to choose a PDF</strong> or drag & drop here</p>
-        <p class="muted small">Text-based PDFs only · max 50,000 characters extracted</p>
+        <p class="muted small">
+        Text-based PDFs read instantly · Scanned PDFs use OCR (slower, max 5 MB)
+        </p>
       </div>
       <div class="upload-filled" id="upload-filled" hidden>
         <div class="upload-icon">✅</div>
@@ -42,6 +44,9 @@
   <div class="row-between">
     <h2>✨ Summary <span class="muted small">— {{ saved_title }}</span></h2>
     <div class="row-gap">
+      {% if ocr_used %}
+        <span class="pill diff-medium">🔍 OCR</span>
+      {% endif %}
       <button class="btn-outline small" id="copy-btn">📋 Copy</button>
       <a class="btn-outline small" download="{{ saved_title }}.md"
          id="download-link">⬇ Download .md</a>
@@ -50,12 +55,16 @@
   <div class="ai-summary" id="summary-body">{{ summary|md }}</div>
   <p class="muted small mt-12">
     💾 Saved to <a href="{{ url_for('notes.index') }}">Notes</a>.
+    {% if ocr_used %}<br>📸 Text was extracted from scanned images using OCR.{% endif %}
   </p>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
+{% if summary %}
+<script id="summary-data" type="application/json">{{ summary|tojson }}</script>
+{% endif %}
 <script>
   // ---------- File picker + drag/drop ----------
   const dropZone = document.getElementById("drop-zone");
@@ -113,29 +122,30 @@
   form.addEventListener("submit", () => {
     if (!fileInput.files[0]) return;
     submitBtn.disabled = true;
-    submitBtn.value = "✨ Extracting & summarizing…";
+    submitBtn.value = "✨ Extracting & summarizing… (scanned PDFs can take 30s)";
   });
 
   // ---------- Copy / Download summary ----------
-  {% if summary %}
-  const summaryRaw = {{ summary|tojson }};
-  const copyBtn = document.getElementById("copy-btn");
-  const downloadLink = document.getElementById("download-link");
+  const summaryEl = document.getElementById("summary-data");
+  if (summaryEl) {
+    const summaryRaw = JSON.parse(summaryEl.textContent);
+    const copyBtn = document.getElementById("copy-btn");
+    const downloadLink = document.getElementById("download-link");
 
-  copyBtn?.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(summaryRaw);
-      copyBtn.textContent = "✓ Copied!";
-      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
-    } catch (err) {
-      alert("Copy failed: " + err.message);
+    copyBtn?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(summaryRaw);
+        copyBtn.textContent = "✓ Copied!";
+        setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
+      } catch (err) {
+        alert("Copy failed: " + err.message);
+      }
+    });
+
+    if (downloadLink) {
+      const blob = new Blob([summaryRaw], { type: "text/markdown" });
+      downloadLink.href = URL.createObjectURL(blob);
     }
-  });
-
-  if (downloadLink) {
-    const blob = new Blob([summaryRaw], { type: "text/markdown" });
-    downloadLink.href = URL.createObjectURL(blob);
   }
-  {% endif %}
 </script>
 {% endblock %}

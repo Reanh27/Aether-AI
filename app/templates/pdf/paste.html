@@ -37,6 +37,9 @@
 {% endblock %}
 
 {% block scripts %}
+{% if summary %}
+<script id="summary-data" type="application/json">{{ summary|tojson }}</script>
+{% endif %}
 <script>
   const form = document.getElementById("pdf-form");
   const submitBtn = document.getElementById("submit-btn");
@@ -45,23 +48,24 @@
     submitBtn.value = "✨ Summarizing…";
   });
 
-  {% if summary %}
-  const summaryRaw = {{ summary|tojson }};
-  const copyBtn = document.getElementById("copy-btn");
-  const downloadLink = document.getElementById("download-link");
+  const summaryEl = document.getElementById("summary-data");
+  if (summaryEl) {
+    const summaryRaw = JSON.parse(summaryEl.textContent);
+    const copyBtn = document.getElementById("copy-btn");
+    const downloadLink = document.getElementById("download-link");
 
-  copyBtn?.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(summaryRaw);
-      copyBtn.textContent = "✓ Copied!";
-      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
-    } catch (err) { alert("Copy failed: " + err.message); }
-  });
+    copyBtn?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(summaryRaw);
+        copyBtn.textContent = "✓ Copied!";
+        setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
+      } catch (err) { alert("Copy failed: " + err.message); }
+    });
 
-  if (downloadLink) {
-    const blob = new Blob([summaryRaw], { type: "text/markdown" });
-    downloadLink.href = URL.createObjectURL(blob);
+    if (downloadLink) {
+      const blob = new Blob([summaryRaw], { type: "text/markdown" });
+      downloadLink.href = URL.createObjectURL(blob);
+    }
   }
-  {% endif %}
 </script>
 {% endblock %}

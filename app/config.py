@@ -40,3 +40,8 @@ class Config:
     # Shared
     MAIL_FROM = os.getenv("MAIL_FROM", "")  # display "From" address
     MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Aether AI")
+
+        # ---- OCR (for scanned PDFs / images) ----
+    # Get free key at https://ocr.space/ocrapi  (25k calls/month free)
+    OCR_API_KEY = os.getenv("K88247512788957", "")
+    OCR_LANGUAGE = os.getenv("OCR_LANGUAGE", "eng")

@@ -13,17 +13,18 @@ pdf_bp = Blueprint("pdf", __name__)
 @pdf_bp.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-    """Upload a PDF file → extract text → AI summary."""
+    """Upload a PDF file → extract text (with OCR fallback) → AI summary."""
     form = PdfUploadForm()
     summary = None
     saved_title = None
+    ocr_used = False
 
     if form.validate_on_submit():
         file = form.pdf.data
         original_name = (file.filename or "document.pdf").rsplit(".", 1)[0]
         title = (form.title.data or "").strip() or original_name
 
-        text, pages, err = extract_text(file)
+        text, pages, ocr_used, err = extract_text(file)
         if err:
             flash(err, "danger")
             return redirect(url_for("pdf.index"))
@@ -34,10 +35,13 @@ def index():
                     title=saved_title, content=text, summary=summary)
         db.session.add(note)
         db.session.commit()
-        flash(f"Summarized {pages} page(s). Saved to your Notes.", "success")
+        ocr_msg = " (extracted via OCR)" if ocr_used else ""
+        flash(f"Summarized {pages} page(s){ocr_msg}. Saved to your Notes.",
+              "success")
 
     return render_template("pdf/index.html", form=form,
-                           summary=summary, saved_title=saved_title)
+                           summary=summary, saved_title=saved_title,
+                           ocr_used=ocr_used)
 
 
 @pdf_bp.route("/paste", methods=["GET", "POST"])
