@@ -29,3 +29,4 @@ class Config:
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
     MAIL_FROM = os.getenv("MAIL_FROM", "")
     MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Aether AI")
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "0") == "1"

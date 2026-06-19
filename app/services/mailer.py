@@ -51,13 +51,26 @@ def _send_console(msg):
 
 def _send_smtp(msg):
     cfg = current_app.config
+    server = cfg["MAIL_SERVER"]
+    port = int(cfg["MAIL_PORT"])
+    timeout = 10  # never hang more than 10 seconds
     context = ssl.create_default_context()
-    with smtplib.SMTP(cfg["MAIL_SERVER"], cfg["MAIL_PORT"]) as smtp:
-        if cfg.get("MAIL_USE_TLS"):
-            smtp.starttls(context=context)
-        if cfg.get("MAIL_USERNAME") and cfg.get("MAIL_PASSWORD"):
-            smtp.login(cfg["MAIL_USERNAME"], cfg["MAIL_PASSWORD"])
-        smtp.send_message(msg)
+
+    # Use SSL (port 465) or STARTTLS (port 587) based on config
+    use_ssl = cfg.get("MAIL_USE_SSL", False) or port == 465
+
+    if use_ssl:
+        with smtplib.SMTP_SSL(server, port, context=context, timeout=timeout) as smtp:
+            if cfg.get("MAIL_USERNAME") and cfg.get("MAIL_PASSWORD"):
+                smtp.login(cfg["MAIL_USERNAME"], cfg["MAIL_PASSWORD"])
+            smtp.send_message(msg)
+    else:
+        with smtplib.SMTP(server, port, timeout=timeout) as smtp:
+            if cfg.get("MAIL_USE_TLS"):
+                smtp.starttls(context=context)
+            if cfg.get("MAIL_USERNAME") and cfg.get("MAIL_PASSWORD"):
+                smtp.login(cfg["MAIL_USERNAME"], cfg["MAIL_PASSWORD"])
+            smtp.send_message(msg)
 
 
 def send_email(to_email, subject, text, html):
