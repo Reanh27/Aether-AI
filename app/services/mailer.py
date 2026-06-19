@@ -63,14 +63,31 @@ def _send_smtp(msg):
 def send_email(to_email, subject, text, html):
     msg = _build_message(to_email, subject, text, html)
     backend = (current_app.config.get("MAIL_BACKEND") or "console").lower()
+    username = current_app.config.get("MAIL_USERNAME", "")
+    password_len = len(current_app.config.get("MAIL_PASSWORD", ""))
+
+    # DEBUG: print exactly what config we're using
+    print("=" * 70, flush=True)
+    print(f"📧 send_email() called", flush=True)
+    print(f"   To: {to_email}", flush=True)
+    print(f"   Subject: {subject}", flush=True)
+    print(f"   MAIL_BACKEND: '{backend}'", flush=True)
+    print(f"   MAIL_USERNAME: '{username}'", flush=True)
+    print(f"   MAIL_PASSWORD length: {password_len}", flush=True)
+    print(f"   MAIL_SERVER: {current_app.config.get('MAIL_SERVER')}", flush=True)
+    print(f"   MAIL_PORT: {current_app.config.get('MAIL_PORT')}", flush=True)
+    print("=" * 70, flush=True)
+
     try:
-        if backend == "smtp" and current_app.config.get("MAIL_USERNAME"):
+        if backend == "smtp" and username:
+            print("→ Attempting SMTP send...", flush=True)
             _send_smtp(msg)
-            current_app.logger.info(f"Email sent to {to_email}: {subject}")
+            print(f"✓ SMTP SUCCESS: email sent to {to_email}", flush=True)
         else:
+            print(f"→ Using console fallback (backend={backend}, username={'set' if username else 'EMPTY'})", flush=True)
             _send_console(msg)
     except Exception as e:
-        current_app.logger.warning(f"SMTP send failed ({e}); falling back to console.")
+        print(f"✗ SMTP FAILED: {type(e).__name__}: {e}", flush=True)
         _send_console(msg)
 
 
