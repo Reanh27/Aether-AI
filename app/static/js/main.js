@@ -64,3 +64,29 @@ document.addEventListener("DOMContentLoaded", () => {
     ta.addEventListener("input", grow);
   });
 });
+
+// ---------- Password show/hide toggle ----------
+document.querySelectorAll('input[type="password"]').forEach((input) => {
+  // Skip if already wrapped
+  if (input.parentElement.classList.contains("password-wrap")) return;
+
+  // Wrap the input in a relative container
+  const wrap = document.createElement("div");
+  wrap.className = "password-wrap";
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+
+  // Create the eye toggle button
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "password-toggle";
+  btn.setAttribute("aria-label", "Show password");
+  btn.innerHTML = "👁";
+  btn.addEventListener("click", () => {
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    btn.innerHTML = isHidden ? "🙈" : "👁";
+    btn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+  });
+  wrap.appendChild(btn);
+});
