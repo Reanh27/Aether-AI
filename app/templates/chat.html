@@ -1,66 +1,132 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="chat-layout">
-  <aside class="chat-side">
-    <form method="POST" action="{{ url_for('chat.new_session') }}">
-      <button class="btn btn-full"><span class="plus">+</span> New Chat</button>
-    </form>
-    <ul class="chat-list">
-      {% for s in sessions %}
-        <li class="{% if current and s.id == current.id %}active{% endif %}">
-          <a href="{{ url_for('chat.index', s=s.id) }}">
-            <span class="ico">💬</span> {{ s.title }}
-          </a>
-                <a href="{{ url_for('wikipedia.index') }}"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}{{ BRAND }}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f97316">
+  <meta name="description" content="{{ BRAND }} — AI-powered study companion.">
+  <!-- Set theme BEFORE styles load to avoid flash -->
+  <script>
+    (function() {
+      var saved = localStorage.getItem("aether-theme");
+      var sysDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var theme = saved || (sysDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=4">
+</head>
+<body class="{% if current_user.is_authenticated %}has-sidebar{% endif %}">
+
+{% if current_user.is_authenticated %}
+  <!-- Mobile top bar (hamburger) -->
+  <header class="mobile-bar">
+    <button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+    <a class="brand light" href="{{ url_for('dashboard.index') }}">
+      <span class="brand-logo">✦</span> {{ BRAND }}
+    </a>
+  </header>
+
+  <!-- Backdrop for closing sidebar on mobile -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard.index') }}">
+      <span class="brand-logo">✦</span>
+      <span class="brand-name">{{ BRAND }}</span>
+    </a>
+
+    <nav class="side-nav">
+      <a href="{{ url_for('dashboard.index') }}"
+         class="{% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <span class="ico">▦</span> Dashboard
+      </a>
+      <a href="{{ url_for('flashcards.index') }}"
+         class="{% if request.blueprint == 'flashcards' %}active{% endif %}">
+        <span class="ico">≣</span> My Decks
+      </a>
+      <a href="{{ url_for('quizzes.index') }}"
+         class="{% if request.blueprint == 'quizzes' %}active{% endif %}">
+        <span class="ico">✿</span> Study
+      </a>
+      <a href="{{ url_for('rooms.index') }}"
+         class="{% if request.blueprint == 'rooms' %}active{% endif %}">
+        <span class="ico">⚇</span> Study Rooms
+      </a>
+      <a href="{{ url_for('planner.index') }}"
+         class="{% if request.blueprint == 'planner' %}active{% endif %}">
+        <span class="ico">✧</span> AI Planner
+      </a>
+      <a href="{{ url_for('chat.index') }}"
+         class="{% if request.blueprint == 'chat' %}active{% endif %}">
+        <span class="ico">💬</span> AI Chat
+      </a>
+      <a href="{{ url_for('wikipedia.index') }}"
          class="{% if request.blueprint == 'wikipedia' %}active{% endif %}">
         <span class="ico">📖</span> Wikipedia
       </a>
-          <form method="POST" action="{{ url_for('chat.delete', session_id=s.id) }}"
-                onsubmit="return confirm('Delete this chat?')" class="del-form">
-            <button title="Delete">✕</button>
-          </form>
-        </li>
-      {% endfor %}
-      {% if not sessions %}
-        <li class="muted small empty">No chats yet. Start a new one.</li>
-      {% endif %}
-    </ul>
+      <a href="{{ url_for('notes.index') }}"
+         class="{% if request.blueprint == 'notes' %}active{% endif %}">
+        <span class="ico">📝</span> Notes
+      </a>
+      <a href="{{ url_for('pdf.index') }}"
+         class="{% if request.blueprint == 'pdf' %}active{% endif %}">
+        <span class="ico">📄</span> PDF Summary
+      </a>
+    </nav>
+
+    <div class="side-bottom">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+        <span class="theme-icon-light">☀️</span>
+        <span class="theme-icon-dark">🌙</span>
+        <span class="theme-label">Theme</span>
+      </button>
+      <div class="user-line">{{ current_user.name }}</div>
+      <a class="side-logout" href="{{ url_for('auth.logout') }}">
+        <span class="ico">⎋</span> Sign Out
+      </a>
+    </div>
   </aside>
-
-  <section class="chat-main">
-    <div id="chat-window" class="chat-window"
-         data-session-id="{{ current.id if current else '' }}">
-      {% if current %}
-  {% for m in current.messages %}
-    <div class="msg msg-{{ m.role }}">
-      {% if m.role == 'assistant' %}{{ m.content|md }}{% else %}{{ m.content }}{% endif %}
+{% else %}
+  <nav class="top-nav">
+    <a class="brand light" href="{{ url_for('main.home') }}">
+      <span class="brand-logo">✦</span> {{ BRAND }}
+    </a>
+    <div class="top-links">
+      <a href="{{ url_for('main.about') }}">About</a>
+      <a href="{{ url_for('auth.login') }}">Log in</a>
+      <button class="theme-toggle compact" id="theme-toggle" aria-label="Toggle dark mode">
+        <span class="theme-icon-light">☀️</span>
+        <span class="theme-icon-dark">🌙</span>
+      </button>
+      <a class="btn" href="{{ url_for('auth.register') }}">Get started</a>
     </div>
-  {% endfor %}
-        {% if not current.messages %}
-          <div class="empty-chat">
-            <h2>How can I help you study today?</h2>
-            <p class="muted">Ask anything — explanations, examples, summaries, practice questions.</p>
-          </div>
-        {% endif %}
-      {% else %}
-        <div class="empty-chat">
-          <h2>Start your first chat</h2>
-          <p class="muted">Click <strong>+ New Chat</strong> on the left to begin.</p>
-        </div>
-      {% endif %}
-    </div>
+  </nav>
+{% endif %}
 
-    {% if current %}
-      <form id="chat-form" class="chat-form">
-        <button type="button" class="mic">🎤</button>
-        <input id="chat-input" class="input" placeholder="Ask anything..." autocomplete="off" required>
-        <button class="send" title="Send">➤</button>
+<main class="{% if current_user.is_authenticated %}content{% else %}container{% endif %}">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash flash-{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if current_user.is_authenticated and not current_user.email_verified %}
+    <div class="verify-banner">
+      <span>
+        ⚠️ <strong>Please verify your email</strong> ({{ current_user.email }}) to secure your account.
+      </span>
+      <form method="POST" action="{{ url_for('auth.resend_verification') }}" style="display:inline;">
+        <button class="btn-outline small">Resend email</button>
       </form>
-    {% endif %}
-  </section>
-</div>
-{% endblock %}
+    </div>
+  {% endif %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
-{% endblock %}
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

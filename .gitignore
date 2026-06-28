@@ -1,0 +1,35 @@
+# Python virtual environment
+venv/
+env/
+.venv/
+
+# Compiled Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Secrets - NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Local databases
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp test scripts
+test_ai.py
+fix_css.py

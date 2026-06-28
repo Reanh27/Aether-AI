@@ -15,7 +15,7 @@
       document.documentElement.setAttribute("data-theme", theme);
     })();
   </script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=5">
 </head>
 <body class="{% if current_user.is_authenticated %}has-sidebar{% endif %}">
 
