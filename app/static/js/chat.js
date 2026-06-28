@@ -1,4 +1,4 @@
-// ChatGPT-style chat: auto-grow input, Enter-to-send, copy, regenerate, rename.
+// Aether AI — chat (StudyFlow-style)
 (function () {
   const form = document.getElementById("chat-form");
   const input = document.getElementById("chat-input");
@@ -7,16 +7,9 @@
   const sessionId = win.dataset.sessionId;
   if (!sessionId) return;
 
-  let userInitial = "U";
-  const initEl = document.getElementById("cg-init");
-  if (initEl) {
-    try { userInitial = JSON.parse(initEl.textContent).userInitial || "U"; }
-    catch (e) {}
-  }
-
   function autoGrow() {
     input.style.height = "auto";
-    input.style.height = Math.min(input.scrollHeight, 200) + "px";
+    input.style.height = Math.min(input.scrollHeight, 160) + "px";
   }
   input.addEventListener("input", autoGrow);
 
@@ -27,51 +20,57 @@
     }
   });
 
-  function refreshRegen() {
-    win.querySelectorAll(".regen-msg").forEach((b) => b.remove());
-    const assistants = win.querySelectorAll(".cg-msg-assistant");
-    const last = assistants[assistants.length - 1];
-    if (!last) return;
-    const actions = last.querySelector(".cg-msg-actions");
-    if (!actions || actions.querySelector(".regen-msg")) return;
-    const btn = document.createElement("button");
-    btn.className = "cg-action regen-msg";
-    btn.title = "Regenerate";
-    btn.textContent = "↻ Regenerate";
-    actions.appendChild(btn);
-  }
-
-  function escapeHtml(s) {
-    return (s || "").replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-    })[c]);
-  }
-
-  function addMessage(role, content, isHtml) {
-    const welcome = win.querySelector(".cg-welcome");
-    if (welcome) welcome.remove();
+  function addBubble(role, content, isHtml) {
+    const empty = win.querySelector(".aichat-empty");
+    if (empty) empty.remove();
     const wrap = document.createElement("div");
-    wrap.className = "cg-msg cg-msg-" + role;
-    wrap.innerHTML = `
-      <div class="cg-msg-avatar">${role === "user" ? escapeHtml(userInitial) : "✦"}</div>
-      <div class="cg-msg-body">
-        <div class="cg-msg-role">${role === "user" ? "You" : "Aether AI"}</div>
-        <div class="cg-msg-content"></div>
-        ${role === "assistant" ? `
-          <div class="cg-msg-actions">
-            <button class="cg-action copy-msg" title="Copy">📋 Copy</button>
-          </div>` : ""}
-      </div>`;
-    const contentEl = wrap.querySelector(".cg-msg-content");
-    if (isHtml) contentEl.innerHTML = content;
-    else contentEl.textContent = content;
+    wrap.className = "bubble bubble-" + role;
+    const body = document.createElement("div");
+    body.className = "bubble-content";
+    if (isHtml) body.innerHTML = content;
+    else body.textContent = content;
+    wrap.appendChild(body);
+    if (role === "assistant") {
+      const actions = document.createElement("div");
+      actions.className = "bubble-actions";
+      actions.innerHTML = `
+        <button class="bubble-action copy-msg" type="button" title="Copy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy
+        </button>`;
+      wrap.appendChild(actions);
+    }
     win.appendChild(wrap);
-    if (role === "assistant") refreshRegen();
     win.scrollTop = win.scrollHeight;
     return wrap;
   }
 
-  document.querySelectorAll(".cg-suggest[data-prompt]").forEach((btn) => {
+  function refreshRegen() {
+    win.querySelectorAll(".regen-msg").forEach((b) => b.remove());
+    const asst = win.querySelectorAll(".bubble-assistant");
+    const last = asst[asst.length - 1];
+    if (!last) return;
+    const actions = last.querySelector(".bubble-actions");
+    if (!actions) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "bubble-action regen-msg";
+    btn.title = "Regenerate";
+    btn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Regenerate`;
+    actions.appendChild(btn);
+  }
+
+  document.querySelectorAll(".aichat-chip[data-prompt]").forEach((btn) => {
     btn.addEventListener("click", () => {
       input.value = btn.dataset.prompt;
       autoGrow();
@@ -79,9 +78,9 @@
     });
   });
 
-  async function sendMessage(message) {
-    addMessage("user", message, false);
-    const thinking = addMessage("assistant",
+  async function send(message) {
+    addBubble("user", message, false);
+    const thinking = addBubble("assistant",
       '<span class="thinking-dots"><span></span><span></span><span></span></span>',
       true);
     try {
@@ -91,15 +90,15 @@
         body: JSON.stringify({ message }),
       });
       const data = await res.json();
-      const contentEl = thinking.querySelector(".cg-msg-content");
-      contentEl.innerHTML = data.reply_html || data.reply || "(no reply)";
-      contentEl.dataset.raw = data.reply || "";
+      const body = thinking.querySelector(".bubble-content");
+      body.innerHTML = data.reply_html || data.reply || "(no reply)";
+      body.dataset.raw = data.reply || "";
       if (data.title) {
-        const active = document.querySelector(".cg-item.active .cg-item-title");
+        const active = document.querySelector(".aichat-item.active .aichat-item-title");
         if (active) active.textContent = data.title;
       }
     } catch (err) {
-      thinking.querySelector(".cg-msg-content").innerHTML =
+      thinking.querySelector(".bubble-content").innerHTML =
         "<em>Error contacting AI service.</em>";
     }
     refreshRegen();
@@ -108,33 +107,34 @@
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const message = input.value.trim();
-    if (!message) return;
+    const msg = input.value.trim();
+    if (!msg) return;
     input.value = "";
     autoGrow();
-    sendMessage(message);
+    send(msg);
   });
 
   win.addEventListener("click", async (e) => {
     const copyBtn = e.target.closest(".copy-msg");
     if (copyBtn) {
-      const content = copyBtn.closest(".cg-msg-body").querySelector(".cg-msg-content");
-      const text = content.dataset.raw || content.textContent;
+      const bubble = copyBtn.closest(".bubble");
+      const body = bubble.querySelector(".bubble-content");
+      const text = body.dataset.raw || body.textContent;
       try {
         await navigator.clipboard.writeText(text);
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = "✓ Copied!";
-        setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+        const orig = copyBtn.innerHTML;
+        copyBtn.innerHTML = "✓ Copied!";
+        setTimeout(() => { copyBtn.innerHTML = orig; }, 1500);
       } catch (err) { alert("Copy failed: " + err.message); }
       return;
     }
     const regenBtn = e.target.closest(".regen-msg");
     if (regenBtn) {
-      const msg = regenBtn.closest(".cg-msg");
-      const contentEl = msg.querySelector(".cg-msg-content");
-      const actions = msg.querySelector(".cg-msg-actions");
-      const oldHtml = contentEl.innerHTML;
-      contentEl.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
+      const bubble = regenBtn.closest(".bubble");
+      const body = bubble.querySelector(".bubble-content");
+      const actions = bubble.querySelector(".bubble-actions");
+      const oldHtml = body.innerHTML;
+      body.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
       if (actions) actions.style.opacity = "0";
       try {
         const res = await fetch(`/chat/${sessionId}/regenerate`, {
@@ -143,14 +143,14 @@
         });
         const data = await res.json();
         if (data.error) {
-          contentEl.innerHTML = oldHtml;
+          body.innerHTML = oldHtml;
           alert(data.error);
         } else {
-          contentEl.innerHTML = data.reply_html || data.reply || "(no reply)";
-          contentEl.dataset.raw = data.reply || "";
+          body.innerHTML = data.reply_html || data.reply || "(no reply)";
+          body.dataset.raw = data.reply || "";
         }
       } catch (err) {
-        contentEl.innerHTML = oldHtml;
+        body.innerHTML = oldHtml;
         alert("Regenerate failed: " + err.message);
       }
       if (actions) actions.style.opacity = "";
@@ -162,9 +162,9 @@
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const item = btn.closest(".cg-item");
+      const item = btn.closest(".aichat-item");
       const sid = item.dataset.sessionId;
-      const titleEl = item.querySelector(".cg-item-title");
+      const titleEl = item.querySelector(".aichat-item-title");
       const cur = titleEl.textContent.trim();
       const next = prompt("Rename chat:", cur);
       if (next && next.trim() && next.trim() !== cur) {
@@ -180,6 +180,31 @@
       }
     });
   });
+
+  // Voice input (Web Speech API)
+  const mic = document.getElementById("chat-mic");
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (mic && SR) {
+    const recog = new SR();
+    recog.continuous = false;
+    recog.interimResults = false;
+    recog.lang = "en-US";
+    let listening = false;
+    mic.addEventListener("click", () => {
+      if (listening) { recog.stop(); return; }
+      try { recog.start(); listening = true; mic.classList.add("listening"); }
+      catch (e) { console.warn(e); }
+    });
+    recog.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      input.value = (input.value ? input.value + " " : "") + text;
+      autoGrow(); input.focus();
+    };
+    recog.onend = () => { listening = false; mic.classList.remove("listening"); };
+    recog.onerror = () => { listening = false; mic.classList.remove("listening"); };
+  } else if (mic) {
+    mic.style.display = "none";
+  }
 
   autoGrow();
   input.focus();
