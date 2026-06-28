@@ -1733,3 +1733,39 @@ a.chip {
   border-radius: 4px; padding: 1px 6px;
   font-family: ui-monospace, monospace; font-size: 0.72rem;
 }
+
+/* ============================================================
+   FIX: prevent bubbles from stretching vertically
+   ============================================================ */
+.aichat-window {
+  display: block !important;       /* switch from flex to block */
+  padding: 32px 32px 16px;
+}
+.bubble {
+  display: block;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin-bottom: 14px;
+  clear: both;                     /* prevent floats from overlapping */
+}
+.bubble:last-child { margin-bottom: 0; }
+
+/* Use margin-auto for alignment instead of flex align-self */
+.bubble-user {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+.bubble-assistant {
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+/* Empty state stays centered using its own flex */
+.aichat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
